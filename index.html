@@ -60,11 +60,32 @@ h1{margin:0;font-size:28px;font-weight:600;letter-spacing:-.02em}
 .btn.pri{background:var(--teal);border-color:var(--teal);color:#fff}
 .btn.sm{min-height:32px;padding:0 10px;font-size:12px;border-radius:8px}
 .btn.danger{color:var(--red)}
-.row{display:grid;grid-template-columns:2.2fr .9fr 1fr 1fr 1fr 1.4fr;gap:12px;padding:12px 18px;border-bottom:1px solid #EEF1F5;align-items:center}
+.row{display:grid;grid-template-columns:minmax(0,2.4fr) 96px minmax(0,.9fr) 116px 100px 214px;gap:12px;padding:11px 18px;border-bottom:1px solid #EEF1F5;align-items:center}
+.row.it{cursor:pointer;transition:background .15s,transform .2s}
+.row.it:hover{background:#F4F9FA}
+.row.it:hover .nm{color:var(--teal)}
+.row.it:hover .opn{background:var(--teal);color:#fff;border-color:var(--teal)}
+.row.it:hover .opn svg{transform:translateX(2px)}
+.row.opening{background:var(--soft)!important;transform:scale(.995)}
+.opn{width:32px;height:32px;border-radius:8px;border:1px solid #C9D1D6;background:#fff;color:var(--teal);display:inline-flex;align-items:center;justify-content:center;transition:background .15s,color .15s,border-color .15s}
+.opn svg{transition:transform .2s}
+.calbtn{position:relative;overflow:hidden}
+.calbtn input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
+.ana-t{display:flex;align-items:center;gap:10px;width:100%;padding:14px 18px;border-radius:14px;border:1px solid #D3E6EA;background:#F2F8F9;font-size:15px;font-weight:600;color:var(--ink);text-align:left}
+.ana-t:hover{background:#EAF4F6}
+.ana-t .cnt{background:var(--teal);color:#fff;font-size:12px;border-radius:999px;padding:2px 8px}
+.ana-t .chev{margin-left:auto;transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.ana-t[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.ana{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .45s cubic-bezier(.2,.7,.2,1),opacity .3s}
+.ana.open{grid-template-rows:1fr;opacity:1}
+.ana>div{overflow:hidden;min-height:0}
+.tipgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media(max-width:860px){.row{grid-template-columns:minmax(0,1fr) auto}.row .hs,.row.h{display:none}.tipgrid,.grid3{grid-template-columns:1fr}}
 .row.h{background:#F8FAFC;font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
 .row .nm{font-weight:600;font-size:14px;color:var(--ink);text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row .ls{font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tscroll{overflow-x:auto}.tscroll>div{min-width:900px}
+.tscroll{overflow:hidden}
 .flex{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
 .colm{flex:999 1 600px;min-width:0;display:flex;flex-direction:column;gap:16px}
 .cols{flex:1 1 360px;min-width:0;display:flex;flex-direction:column;gap:16px}
@@ -97,8 +118,15 @@ label.f input,label.f textarea,label.f select{font-weight:400;font-size:14px;pad
 @keyframes viewOut{to{opacity:0;transform:translateY(-8px)}}
 #app.enter{animation:viewIn .42s cubic-bezier(.2,.7,.2,1)}
 #app.leaving{animation:viewOut .24s ease forwards}
+@keyframes inR{from{opacity:0;transform:translateX(34px)}to{opacity:1;transform:none}}
+@keyframes inL{from{opacity:0;transform:translateX(-34px)}to{opacity:1;transform:none}}
+@keyframes outL{to{opacity:0;transform:translateX(-26px)}}
+#app.enter-r{animation:inR .45s cubic-bezier(.2,.7,.2,1)}
+#app.enter-l{animation:inL .45s cubic-bezier(.2,.7,.2,1)}
+#app.leaving-l{animation:outL .22s ease forwards}
+#app.enter-r .card,#app.enter-r .line{animation:viewIn .55s cubic-bezier(.2,.7,.2,1) both}
 #app.enter .mod,#app.enter .kpi{animation:viewIn .5s cubic-bezier(.2,.7,.2,1) both}
-@media(prefers-reduced-motion:reduce){#app.enter,#app.leaving,#app.enter .mod,#app.enter .kpi{animation:none}.mod,.mod .go svg{transition:none}}
+@media(prefers-reduced-motion:reduce){#app.enter-r,#app.enter-l,#app.leaving-l,#app.enter-r .card,.ana,#app.enter,#app.leaving,#app.enter .mod,#app.enter .kpi{animation:none}.mod,.mod .go svg{transition:none}}
 </style>
 </head>
 <body>
@@ -144,7 +172,7 @@ const TIPOS = { AU: 'Autos', IN: 'Incendio / propiedad', RC: 'Resp. civil', GM: 
 
 // ====== ESTADO ======
 let pca, ME = '', S = '', LID = {}, DRIVE = '', REC = [], SEG = [];
-let VIEW = { f: 'abiertos', q: '', all: false };
+let VIEW = { f: 'abiertos', q: '', all: false, ana: false };
 const TODAY = ymd(new Date());
 
 // ====== FECHAS ======
@@ -289,8 +317,13 @@ async function loadAll() {
 }
 
 // ====== RUTAS ======
-function animateIn() { const a = $('app'); a.classList.remove('leaving', 'enter'); void a.offsetWidth; a.classList.add('enter'); }
-window.addEventListener('hashchange', () => { route(); animateIn(); });
+let LASTH = location.hash;
+function animateIn(kind = 'enter') { const a = $('app'); a.classList.remove('leaving', 'leaving-l', 'enter', 'enter-r', 'enter-l'); void a.offsetWidth; a.classList.add(kind); }
+window.addEventListener('hashchange', () => {
+  const now = location.hash, prev = LASTH; LASTH = now;
+  route();
+  animateIn(now.startsWith('#caso-') ? 'enter-r' : prev.startsWith('#caso-') ? 'enter-l' : 'enter');
+});
 document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.dataset?.a === 'openMod') { e.preventDefault(); ACT.openMod(e.target.dataset, e.target); } });
 function route() {
   if (!S) return;
@@ -435,62 +468,68 @@ function viewSeg() {
   let list = REC.filter(fn).filter(r => !q || [r.Title, r.Ref, r.Aseguradora, r.Poliza, r.AsuntoCliente, r.AsuntoAseguradora].join(' ').toLowerCase().includes(q));
   list.sort((a, b) => VIEW.f === 'cerrados' ? b.id - a.id : (a.ProximoSeguimiento || '9').localeCompare(b.ProximoSeguimiento || '9'));
   const shown = VIEW.all ? list : list.slice(0, 40);
-  const byA = {}; n.open.forEach(r => { const k = r.Aseguradora || '—'; byA[k] = (byA[k] || 0) + 1; });
+  const byA = {}; n.open.forEach(r => { const k = r.Aseguradora || 'Sin aseguradora'; byA[k] = (byA[k] || 0) + 1; });
   const aTop = Object.entries(byA).sort((a, b) => b[1] - a[1]); const aMax = aTop[0]?.[1] || 1;
   const aRows = aTop.slice(0, 6); if (aTop.length > 6) aRows.push(['Otras', aTop.slice(6).reduce((s, x) => s + x[1], 0)]);
   const byT = {}; n.open.forEach(r => { const k = tipo(r); byT[k] = (byT[k] || 0) + 1; });
   const ages = n.open.map(firstDate).filter(Boolean).map(d => diff(TODAY, d));
   const avgAge = ages.length ? Math.round(ages.reduce((a, b) => a + b, 0) / ages.length) : 0;
   const pct = x => Math.round(x / (n.abiertos || 1) * 100) + '%';
+  const T = tips();
+  const cal = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>';
   $('app').innerHTML = `
-  <div style="display:flex;flex-direction:column;gap:22px">
+  <div style="display:flex;flex-direction:column;gap:20px">
     <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px">
       <h1>Seguimientos</h1>
       <div style="display:flex;flex-wrap:wrap;gap:10px">
-        <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5A6577" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" placeholder="Buscar cliente, ref, póliza o asunto" value="${esc(VIEW.q)}" aria-label="Buscar"></label>
+        <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#66737C" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" placeholder="Buscar cliente, ref, póliza o asunto" value="${esc(VIEW.q)}" aria-label="Buscar"></label>
         <button class="btn" data-a="importJson">Importar sistema viejo</button>
         <button class="btn pri" data-a="newCase">+ Nuevo cliente</button>
       </div>
     </div>
     <div class="grid5">
       ${[['Abiertos', n.abiertos, '100%', 'var(--teal)'], ['Atrasados', n.atrasados, pct(n.atrasados), 'var(--red)'], ['Para hoy', n.hoy, pct(n.hoy), '#B54708'], ['Próximos 6 días', n.semana, pct(n.semana), '#2563EB'], ['Días abiertos (prom.)', avgAge, Math.min(avgAge / 120 * 100, 100) + '%', '#475569']]
-        .map(([l, v, w, c]) => `<div class="card" style="padding:16px;display:flex;flex-direction:column;gap:6px"><span class="sub" style="font-size:13px">${l}</span><b style="font-size:22px;font-weight:600;color:${c}">${v}</b><div class="track" style="height:6px"><i style="height:6px;width:${w};background:${c}"></i></div></div>`).join('')}
+        .map(([l, v, w, c]) => `<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:6px"><span class="sub" style="font-size:13px">${l}</span><b style="font-size:22px;font-weight:600;color:${c}">${v}</b><div class="track" style="height:5px"><i style="height:5px;width:${w};background:${c}"></i></div></div>`).join('')}
     </div>
-    <div class="flex">
-      <div class="colm">
-        <div style="display:flex;flex-wrap:wrap;gap:8px">
-          ${FILTERS.map(([k, l, f]) => `<button class="chip ${VIEW.f === k ? 'on' : ''}" data-a="filter" data-f="${k}">${l} · ${REC.filter(f).length}</button>`).join('')}
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      ${FILTERS.map(([k, l, f]) => `<button class="chip ${VIEW.f === k ? 'on' : ''}" data-a="filter" data-f="${k}">${l} · ${REC.filter(f).length}</button>`).join('')}
+    </div>
+    <div class="card tscroll">
+      <div class="row h"><span>Cliente</span><span>Ref</span><span>Aseguradora</span><span>Esperando</span><span>Seguimiento</span><span>Mover / abrir</span></div>
+      ${shown.map(r => { const l = segsOf(r.id)[0]; return `
+      <div class="row it" data-a="openCase" data-id="${r.id}" title="Abrir el caso de ${esc(r.Title)}">
+        <div style="min-width:0"><div class="nm">${esc(r.Title)}</div><div class="ls">${esc(l ? `${l.Texto} · ${l.Autor || ''}` : 'Sin seguimientos')}</div></div>
+        <span class="mono hs" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.Ref)}</span>
+        <span class="hs" style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.Aseguradora)}</span>
+        <span class="hs">${pill(r.Esperando)}</span>
+        <div class="hs"><div style="font-size:13px;font-weight:600;color:${dColor(r.ProximoSeguimiento)}">${fd(r.ProximoSeguimiento)}</div><div style="font-size:12px;color:${dColor(r.ProximoSeguimiento)}">${rel(r.ProximoSeguimiento)}</div></div>
+        <div style="display:flex;gap:6px;align-items:center;justify-content:flex-end">${isOpen(r) ? `
+          <button class="btn sm hs" data-a="move" data-id="${r.id}" data-n="1">+1 día</button>
+          <button class="btn sm hs" data-a="move" data-id="${r.id}" data-n="7">+1 sem</button>
+          <label class="btn sm calbtn hs" title="Elegir fecha" style="width:32px;padding:0;justify-content:center">${cal}<input type="date" aria-label="Elegir fecha" data-a2="setDate" data-id="${r.id}"></label>` : '<span class="sub hs" style="font-size:12px">Cerrado</span>'}
+          <button class="opn" data-a="openCase" data-id="${r.id}" aria-label="Abrir caso"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
         </div>
-        <div class="card tscroll"><div>
-          <div class="row h"><span>Cliente</span><span>Ref</span><span>Aseguradora</span><span>Esperando</span><span>Seguimiento</span><span>Mover</span></div>
-          ${shown.map(r => { const l = segsOf(r.id)[0]; return `
-          <div class="row">
-            <div style="min-width:0"><a class="nm" href="#caso-${r.id}">${esc(r.Title)}</a><div class="ls">${esc(l ? `${l.Texto} · ${l.Autor || ''}` : 'Sin seguimientos')}</div></div>
-            <span class="mono">${esc(r.Ref)}</span>
-            <span style="font-size:13px">${esc(r.Aseguradora)}</span>
-            <span>${pill(r.Esperando)}</span>
-            <div><div style="font-size:13px;font-weight:600;color:${dColor(r.ProximoSeguimiento)}">${fd(r.ProximoSeguimiento)}</div><div style="font-size:12px;color:${dColor(r.ProximoSeguimiento)}">${rel(r.ProximoSeguimiento)}</div></div>
-            <div style="display:flex;gap:6px;align-items:center">${isOpen(r) ? `
-              <button class="btn sm" data-a="move" data-id="${r.id}" data-n="1">+1 día</button>
-              <button class="btn sm" data-a="move" data-id="${r.id}" data-n="7">+1 sem</button>
-              <input type="date" aria-label="Elegir fecha" data-a2="setDate" data-id="${r.id}" style="width:34px;height:32px;border:1px solid #D5DBE4;border-radius:8px;padding:0 4px">` : '<span class="sub" style="font-size:12px">Cerrado</span>'}
-            </div>
-          </div>`; }).join('') || '<div class="pad sub">No hay reclamos en este filtro.</div>'}
-          <div style="padding:12px 18px;font-size:13px" class="sub">Mostrando ${shown.length} de ${list.length}${list.length > shown.length ? ` · <a href="#" data-a="showAll">ver todos</a>` : ''}</div>
-        </div></div>
-      </div>
-      <div class="cols">
-        <div class="tips"><b>Resumen y tips</b>${tipsHtml(tips())}</div>
+      </div>`; }).join('') || '<div class="pad sub">No hay reclamos en este filtro.</div>'}
+      <div style="padding:12px 18px;font-size:13px" class="sub">Mostrando ${shown.length} de ${list.length}${list.length > shown.length ? ` · <a href="#" data-a="showAll">ver todos</a>` : ''} · Haz clic en un cliente para abrir su caso</div>
+    </div>
+    <button class="ana-t" data-a="toggleAna" aria-expanded="${VIEW.ana ? 'true' : 'false'}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      Resumen, tips y análisis <span class="cnt">${T.length} tips</span>
+      <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <div class="ana ${VIEW.ana ? 'open' : ''}" id="ana"><div><div style="display:flex;flex-direction:column;gap:16px;padding-bottom:6px">
+      <div class="tips"><b>Tips</b><div class="tipgrid">${tipsHtml(T)}</div></div>
+      <div class="grid3">
         ${waitBar(n.open)}
         <div class="card pad" style="display:flex;flex-direction:column;gap:10px"><b>Abiertos por aseguradora</b>
           ${aRows.map(([k, v]) => `<div class="bars"><span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(k)}</span><div class="track"><i style="width:${v / aMax * 100}%"></i></div><b style="text-align:right">${v}</b></div>`).join('') || '<span class="sub">Sin datos</span>'}
         </div>
         <div class="card pad" style="display:flex;flex-direction:column;gap:10px"><b>Por tipo de reclamo</b>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${Object.entries(byT).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div class="kpi" style="padding:12px"><b style="font-size:22px">${v}</b><span>${k}</span></div>`).join('')}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${Object.entries(byT).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div class="kpi" style="padding:10px 12px"><b style="font-size:19px">${v}</b><span>${k}</span></div>`).join('')}</div>
           <span class="sub" style="font-size:12px">Según el prefijo de la referencia (AU, IN, RC…)</span>
         </div>
       </div>
-    </div>
+    </div></div></div>
   </div>`;
   const qi = $('q'); qi.oninput = () => { VIEW.q = qi.value; const pos = qi.selectionStart; viewSeg(); const nq = $('q'); nq.focus(); nq.setSelectionRange(pos, pos); };
 }
@@ -547,7 +586,7 @@ function viewCaso(id) {
         <div style="padding:9px 14px;border-radius:12px;background:${r.ProximoSeguimiento < TODAY ? '#FDECEA' : '#F5F7FA'}"><div style="font-size:12px;font-weight:600;color:${dColor(r.ProximoSeguimiento)}">Próximo seguimiento</div><b style="color:${dColor(r.ProximoSeguimiento)}">${fd(r.ProximoSeguimiento)} · ${rel(r.ProximoSeguimiento)}</b></div>
         <button class="btn" data-a="move" data-id="${r.id}" data-n="1">+1 día</button>
         <button class="btn" data-a="move" data-id="${r.id}" data-n="7">+1 semana</button>
-        <input type="date" aria-label="Elegir fecha" data-a2="setDate" data-id="${r.id}" style="min-height:42px;border:1px solid #D5DBE4;border-radius:10px;padding:0 10px">
+        <label class="btn calbtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Elegir fecha<input type="date" aria-label="Elegir fecha" data-a2="setDate" data-id="${r.id}"></label>
       </div>` : ''}
     </div>
     <div class="grid2">${lineCard('cliente', r.AsuntoCliente, r.CorreoCliente)}${lineCard('aseguradora', r.AsuntoAseguradora, r.CorreoAseguradora)}</div>
@@ -648,6 +687,13 @@ const ACT = {
   logout: () => pca.logoutRedirect(),
   close: closeModal,
   goFilter: d => { VIEW.f = d.f; VIEW.all = false; if (location.hash === '#seguimientos') viewSeg(); else location.hash = 'seguimientos'; },
+  toggleAna: (d, el) => { VIEW.ana = !VIEW.ana; el.setAttribute('aria-expanded', VIEW.ana); $('ana').classList.toggle('open', VIEW.ana); if (VIEW.ana) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80); },
+  openCase: (d) => {
+    const row = document.querySelector(`.row.it[data-id="${d.id}"]`);
+    if (!row || matchMedia('(prefers-reduced-motion: reduce)').matches) { location.hash = 'caso-' + d.id; return; }
+    row.classList.add('opening'); $('app').classList.add('leaving-l');
+    setTimeout(() => { location.hash = 'caso-' + d.id; }, 210);
+  },
   openMod: (d, el) => {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) { location.hash = 'seguimientos'; return; }
     el.classList.add('opening'); $('app').classList.add('leaving');
@@ -716,6 +762,8 @@ const ACT = {
   importJson: () => { const ji = $('jsonIn'); ji.onchange = () => { importOld(ji.files[0]); ji.value = ''; }; ji.click(); }
 };
 document.addEventListener('click', async e => {
+  const di = e.target.closest('input[type="date"][data-a2]');
+  if (di) { e.stopPropagation(); try { di.showPicker(); } catch (x) {} return; }
   const b = e.target.closest('[data-a]'); if (!b) return;
   const a = b.dataset.a;
   if (b.tagName === 'A' && b.getAttribute('href') === '#') e.preventDefault();
