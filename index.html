@@ -77,6 +77,29 @@ h1{margin:0;font-size:28px;font-weight:600;letter-spacing:-.02em}
 .opn{width:32px;height:32px;border-radius:8px;border:1px solid #C9D1D6;background:#fff;color:var(--teal);display:inline-flex;align-items:center;justify-content:center;transition:background .15s,color .15s,border-color .15s}
 .opn svg{transition:transform .2s}
 .calbtn{position:relative;overflow:hidden}
+.pk{position:fixed;z-index:40;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 44px rgba(27,42,51,.18);padding:12px;width:292px;animation:pkIn .18s cubic-bezier(.2,.7,.2,1)}
+@keyframes pkIn{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.pk .q{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:10px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+.pk .q button{border:1px solid #C9D1D6;background:#fff;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--ink)}
+.pk .q button:hover{background:var(--soft);border-color:var(--teal);color:var(--teal)}
+.pk .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;font-weight:600;font-size:14px}
+.pk .hd button{width:32px;height:32px;border:0;border-radius:8px;background:transparent;color:var(--mut);font-size:18px}
+.pk .hd button:hover{background:var(--bg);color:var(--teal)}
+.pk .g{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.pk .g span{font-size:11px;color:var(--mut);text-align:center;padding:4px 0;font-weight:600}
+.pk .g button{height:34px;border:0;border-radius:8px;background:transparent;font-size:13px;color:var(--ink);transition:background .12s}
+.pk .g button:hover{background:var(--soft)}
+.pk .g button.we{color:#9AA4AB}
+.pk .g button.td{box-shadow:inset 0 0 0 1.5px var(--teal);font-weight:700}
+.pk .g button.sel{background:var(--teal);color:#fff;font-weight:700}
+.pk .ft{margin-top:8px;font-size:12px;color:var(--mut);text-align:center}
+.datef{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 12px;border-radius:10px;border:1px solid #D5DBE4;background:#fff;font-size:14px;color:var(--ink);font-weight:400;cursor:pointer}
+.datef:hover{border-color:var(--teal)}
+.sync{font-size:12px;color:var(--mut);opacity:0;transition:opacity .3s;white-space:nowrap}
+.sync.on,.sync.ok{opacity:1}.sync.ok{color:#1E6B3A}
+.row.gone{opacity:0;transform:translateX(28px);transition:opacity .25s,transform .25s}
+.tl.newin{animation:viewIn .5s cubic-bezier(.2,.7,.2,1)}
+.tl.newin>div:last-child{background:linear-gradient(90deg,#E4F0F2,transparent);border-radius:8px;padding-left:6px}
 .calbtn input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
 .ana-t{display:flex;align-items:center;gap:10px;width:100%;padding:14px 18px;border-radius:14px;border:1px solid #D3E6EA;background:#F2F8F9;font-size:15px;font-weight:600;color:var(--ink);text-align:left}
 .ana-t:hover{background:#EAF4F6}
@@ -173,7 +196,7 @@ label.f input,label.f textarea,label.f select{font-weight:400;font-size:14px;pad
     </div>
     <nav id="nav"><a href="#inicio" id="nInicio">Inicio</a><button class="navx" data-a="navToggle" aria-expanded="false" aria-controls="navm" aria-label="Ver módulos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button><div class="navm" id="navm"><a href="#seguimientos" id="nSeg">Seguimientos</a></div></nav>
     <div style="display:flex;align-items:center;gap:10px">
-      <div style="text-align:right;line-height:1.3"><div id="uName" style="font-size:14px;font-weight:600"></div><a href="#" data-a="logout" style="font-size:12px">Salir</a></div>
+      <span id="sync" class="sync" role="status"></span><div style="text-align:right;line-height:1.3"><div id="uName" style="font-size:14px;font-weight:600"></div><a href="#" data-a="logout" style="font-size:12px">Salir</a></div>
       <div class="av" id="uAv"></div>
     </div>
   </div>
@@ -220,6 +243,8 @@ const DIAS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'], MES = ['ene', 
 function fd(s) { if (!s) return '—'; const d = D(s); return `${DIAS[d.getDay()]} ${d.getDate()} ${MES[d.getMonth()]}`; }
 function rel(s) { if (!s) return ''; const n = diff(s, TODAY); return n === 0 ? 'hoy' : n < 0 ? `hace ${-n} día${n === -1 ? '' : 's'}` : n === 1 ? 'mañana' : `en ${n} días`; }
 function dColor(s) { if (!s) return '#3C4757'; return s < TODAY ? 'var(--red)' : s === TODAY ? 'var(--amber)' : '#3C4757'; }
+function dmy(s) { if (!s) return ''; const [y, m, d] = String(s).slice(0, 10).split('-'); return `${d}/${m}/${y}`; }
+function fdl(s) { if (!s) return 'Sin fecha'; return `${DIAS[D(s).getDay()]} ${dmy(s)}`; }
 const LONG = new Intl.DateTimeFormat('es-CR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
 // ====== UTIL ======
@@ -555,7 +580,7 @@ function viewSeg() {
         <div style="display:flex;gap:6px;align-items:center;justify-content:flex-end">${isOpen(r) ? `
           <button class="btn sm hs" data-a="move" data-id="${r.id}" data-n="1">+1 día</button>
           <button class="btn sm hs" data-a="move" data-id="${r.id}" data-n="7">+1 sem</button>
-          <label class="btn sm calbtn hs" title="Elegir fecha" style="width:32px;padding:0;justify-content:center">${cal}<input type="date" aria-label="Elegir fecha" data-a2="setDate" data-id="${r.id}"></label>` : '<span class="sub hs" style="font-size:12px">Cerrado</span>'}
+          <button class="btn sm hs" data-a="pickMove" data-id="${r.id}" title="Elegir fecha" aria-label="Elegir fecha" style="width:32px;padding:0;justify-content:center">${cal}</button>` : '<span class="sub hs" style="font-size:12px">Cerrado</span>'}
           <button class="opn" data-a="openCase" data-id="${r.id}" aria-label="Abrir caso"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
         </div>
       </div>`; }).join('') || '<div class="pad sub">No hay reclamos en este filtro.</div>'}
@@ -702,10 +727,11 @@ async function exportExcel() {
   toast('Preparando el Excel…');
   await loadXLSX();
   const K = kpiData(), X = XLSX.utils, wb = X.book_new();
-  const sheet = (rows, widths) => { const ws = Array.isArray(rows[0]) ? X.aoa_to_sheet(rows) : X.json_to_sheet(rows); if (widths) ws['!cols'] = widths.map(w => ({ wch: w })); return ws; };
+  const sheet = (rows, widths) => { const ws = Array.isArray(rows[0]) ? X.aoa_to_sheet(rows) : X.json_to_sheet(rows, { dateNF: 'dd/mm/yyyy' }); if (widths) ws['!cols'] = widths.map(w => ({ wch: w })); return ws; };
+  const xd = s => s ? D(s) : '';
   const wc = K.totW.cliente || 0, wa = K.totW.aseguradora || 0;
   X.book_append_sheet(wb, sheet([
-    ['Reporte de reclamos', ''], ['Generado', `${TODAY} por ${ME}`], ['Periodo', PER_LBL[VIEW.per]], ['', ''],
+    ['Reporte de reclamos', ''], ['Generado', `${dmy(TODAY)} por ${ME}`], ['Periodo', PER_LBL[VIEW.per]], ['', ''],
     ['Indicador', 'Valor'],
     ['Reclamos abiertos', K.open.length], ['Reclamos cerrados (total)', K.closed.length],
     ['Nuevos en el periodo', K.nuevos], ['Cerrados en el periodo', K.cerradosP],
@@ -718,16 +744,16 @@ async function exportExcel() {
   ], [48, 28]), 'Resumen');
   X.book_append_sheet(wb, sheet(K.stats.map(x => ({
     'Cliente': x.r.Title, 'Ref': x.r.Ref || '', 'Aseguradora': x.r.Aseguradora || '', 'Póliza': x.r.Poliza || '', 'Tipo': tipo(x.r),
-    'Estado': x.r.Estado || 'Abierto', 'Esperando a': (P[x.r.Esperando] || {}).t || '', 'Primer seguimiento': x.first, 'Último seguimiento': x.last,
+    'Estado': x.r.Estado || 'Abierto', 'Esperando a': (P[x.r.Esperando] || {}).t || '', 'Primer seguimiento': xd(x.first), 'Último seguimiento': xd(x.last),
     'Días desde 1er seguimiento': x.edad, 'Días sin movimiento': isOpen(x.r) ? x.sinMov : '', 'Cantidad de seguimientos': x.n,
     'Días entre seguimientos (prom.)': x.gap === null ? '' : r1(x.gap), 'Días esperando cliente': x.wait.cliente, 'Días esperando aseguradora': x.wait.aseguradora,
-    'Días esperando corredora/Garrett': x.wait.corredora + x.wait.garrett, 'Próximo seguimiento': isOpen(x.r) ? (x.r.ProximoSeguimiento || '') : ''
+    'Días esperando corredora/Garrett': x.wait.corredora + x.wait.garrett, 'Próximo seguimiento': isOpen(x.r) ? xd(x.r.ProximoSeguimiento) : ''
   })), [34, 12, 14, 18, 18, 10, 14, 14, 14, 12, 12, 12, 12, 12, 12, 12, 14]), 'Casos');
   X.book_append_sheet(wb, sheet(K.insRows.map(o => ({ 'Aseguradora': o.k, 'Abiertos': o.ab, 'Cerrados': o.ce, 'Días abiertos (prom.)': o.edadAb.length ? r1(avg(o.edadAb)) : '', 'Cierre promedio (días)': o.cierre.length ? r1(avg(o.cierre)) : '', 'Días esperándola por caso': r1(avg(o.espA)) })), [22, 10, 10, 18, 18, 20]), 'Aseguradoras');
   X.book_append_sheet(wb, sheet(Object.entries(K.byAut).sort((a, b) => b[1] - a[1]).map(([k, v]) => ({ 'Persona': k, 'Gestiones en el periodo': v })), [30, 22]), 'Por persona');
   const recById = Object.fromEntries(REC.map(r => [r.id, r]));
-  X.book_append_sheet(wb, sheet(SEG.filter(s => s.Fecha && s.Fecha >= K.from).sort((a, b) => (b.Fecha || '').localeCompare(a.Fecha || '')).map(s => { const r = recById[Number(s.ReclamoId)] || {}; return { 'Fecha': s.Fecha, 'Cliente': r.Title || '', 'Ref': r.Ref || '', 'Aseguradora': r.Aseguradora || '', 'Seguimiento': s.Texto, 'Esperando a': (P[s.Esperando] || {}).t || '', 'Hecho por': s.Autor || '' }; }), [12, 30, 12, 14, 60, 14, 22]), 'Seguimientos');
-  XLSX.writeFile(wb, `Reclamos_KPI_${TODAY}.xlsx`);
+  X.book_append_sheet(wb, sheet(SEG.filter(s => s.Fecha && s.Fecha >= K.from).sort((a, b) => (b.Fecha || '').localeCompare(a.Fecha || '')).map(s => { const r = recById[Number(s.ReclamoId)] || {}; return { 'Fecha': xd(s.Fecha), 'Cliente': r.Title || '', 'Ref': r.Ref || '', 'Aseguradora': r.Aseguradora || '', 'Seguimiento': s.Texto, 'Esperando a': (P[s.Esperando] || {}).t || '', 'Hecho por': s.Autor || '' }; }), [12, 30, 12, 14, 60, 14, 22]), 'Seguimientos');
+  XLSX.writeFile(wb, `Reclamos_KPI_${dmy(TODAY).replace(/\//g, '-')}.xlsx`);
   toast('Excel descargado');
 }
 
@@ -780,10 +806,10 @@ function viewCaso(id) {
         </div>
       </div>
       ${isOpen(r) ? `<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
-        <div style="padding:9px 14px;border-radius:12px;background:${r.ProximoSeguimiento < TODAY ? '#FDECEA' : '#F5F7FA'}"><div style="font-size:12px;font-weight:600;color:${dColor(r.ProximoSeguimiento)}">Próximo seguimiento</div><b style="color:${dColor(r.ProximoSeguimiento)}">${fd(r.ProximoSeguimiento)} · ${rel(r.ProximoSeguimiento)}</b></div>
+        <div style="padding:9px 14px;border-radius:12px;background:${r.ProximoSeguimiento < TODAY ? '#FDECEA' : '#F5F7FA'}"><div style="font-size:12px;font-weight:600;color:${dColor(r.ProximoSeguimiento)}">Próximo seguimiento</div><b style="color:${dColor(r.ProximoSeguimiento)}">${fdl(r.ProximoSeguimiento)} · ${rel(r.ProximoSeguimiento)}</b></div>
         <button class="btn" data-a="move" data-id="${r.id}" data-n="1">+1 día</button>
         <button class="btn" data-a="move" data-id="${r.id}" data-n="7">+1 semana</button>
-        <label class="btn calbtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Elegir fecha<input type="date" aria-label="Elegir fecha" data-a2="setDate" data-id="${r.id}"></label>
+        <button class="btn" data-a="pickMove" data-id="${r.id}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Elegir fecha</button>
       </div>` : ''}
     </div>
     <div class="grid2">${lineCard('cliente', r.AsuntoCliente, r.CorreoCliente)}${lineCard('aseguradora', r.AsuntoAseguradora, r.CorreoAseguradora)}</div>
@@ -795,14 +821,14 @@ function viewCaso(id) {
           <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
             <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600;color:#3C4757">Ahora esperamos a</span>
               <div style="display:flex;flex-wrap:wrap;gap:6px" id="nW">${Object.keys(P).map(k => `<button class="chip" data-a="pickW" data-k="${k}" style="min-height:38px">${P[k].t}</button>`).join('')}</div></div>
-            <label class="f">Próximo seguimiento<input type="date" id="nDate" value="${biz(addD(TODAY, 2))}"></label>
+            <div class="f" style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:#3C4757">Próximo seguimiento<button type="button" class="datef" data-a="pickField" data-for="nDate"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>${fdl(biz(addD(TODAY, 2)))}</span></button><input type="hidden" id="nDate" value="${biz(addD(TODAY, 2))}"></div>
             <button class="btn pri" style="margin-left:auto" data-a="saveSeg" data-id="${r.id}">Guardar seguimiento</button>
           </div>
         </div>` : ''}
         <div class="card pad" style="display:flex;flex-direction:column;gap:2px">
           <div style="display:flex;justify-content:space-between;margin-bottom:10px"><b>Historial</b><span class="sub" style="font-size:13px">${segs.length} seguimientos</span></div>
-          ${hist.map(s => { const p = P[s.Esperando] || P.garrett; return `
-            <div class="tl"><span style="font-size:13px;font-weight:600;color:var(--mut)">${fd(s.Fecha)}</span>
+          ${hist.map(s => { const p = P[s.Esperando] || P.garrett; const nw = s._new; delete s._new; return `
+            <div class="tl${nw ? ' newin' : ''}"><span style="font-size:13px;font-weight:600;color:var(--mut)">${fd(s.Fecha)}</span>
               <div style="display:flex;flex-direction:column;align-items:center"><span class="dot" style="background:${p.bar}"></span><span class="st"></span></div>
               <div style="padding-bottom:14px"><div style="font-size:14px;line-height:1.45">${esc(s.Texto)}</div><div style="font-size:12px;margin-top:2px"><b style="color:${p.c}">Esperando ${p.t.toLowerCase()}</b> <span class="sub">· ${esc(s.Autor || '—')}</span></div></div>
             </div>`; }).join('') || '<span class="sub">Sin seguimientos todavía.</span>'}
@@ -854,10 +880,32 @@ async function addSeg(r, texto, esperando) {
   const it = await g(itemsUrl('seg'), { method: 'POST', body: JSON.stringify({ fields: f }) });
   SEG.push({ ...f, id: +it.id });
 }
-async function moveTo(r, date) {
-  await patchRec(r, { ProximoSeguimiento: date });
-  await addSeg(r, `Se mueve el seguimiento al ${fd(date)}`, r.Esperando);
-  toast(`Movido al ${fd(date)}`); route();
+// ---- guardado en segundo plano (la pantalla responde al instante) ----
+let PENDING = 0, TMPID = 1e12;
+function syncUI() { const s = $('sync'); if (!s) return; clearTimeout(s._t); if (PENDING) { s.textContent = 'Guardando…'; s.className = 'sync on'; } else { s.textContent = 'Guardado ✓'; s.className = 'sync ok'; s._t = setTimeout(() => s.className = 'sync', 1800); } }
+async function bg(job, revert) {
+  PENDING++; syncUI();
+  try { await job(); }
+  catch (e) { console.error(e); revert && revert(); toast('No se pudo guardar: ' + e.message, 7000); rerender(); }
+  finally { PENDING--; syncUI(); }
+}
+window.addEventListener('beforeunload', e => { if (PENDING) { e.preventDefault(); e.returnValue = ''; } });
+function patchLocal(r, f) { const old = {}; for (const k in f) old[k] = r[k]; Object.assign(r, f); return { req: () => g(`${itemsUrl('rec')}/${r.id}/fields`, { method: 'PATCH', body: JSON.stringify(f) }), revert: () => Object.assign(r, old) }; }
+function segLocal(r, texto, esperando) {
+  const f = { Title: String(r.Ref || r.Title || '').slice(0, 255), ReclamoId: r.id, Texto: texto, Fecha: TODAY, Esperando: esperando, Autor: ME };
+  const tmp = { ...f, id: TMPID++, _new: true }; SEG.push(tmp);
+  return { req: async () => { const it = await g(itemsUrl('seg'), { method: 'POST', body: JSON.stringify({ fields: f }) }); tmp.id = +it.id; }, revert: () => { SEG = SEG.filter(s => s !== tmp); } };
+}
+function rerender() {
+  const h = location.hash.slice(1) || 'inicio';
+  if (h.startsWith('caso-')) viewCaso(+h.slice(5)); else if (h === 'seguimientos') viewSeg(); else viewInicio();
+}
+function moveTo(r, date) {
+  const a = patchLocal(r, { ProximoSeguimiento: date }), b = segLocal(r, `Se mueve el seguimiento al ${fd(date)}`, r.Esperando);
+  toast(`Movido al ${fdl(date)}`);
+  const row = document.querySelector(`.row.it[data-id="${r.id}"]`);
+  if (row && location.hash === '#seguimientos') { row.classList.add('gone'); setTimeout(rerender, 230); } else rerender();
+  bg(() => Promise.all([a.req(), b.req()]), () => { a.revert(); b.revert(); });
 }
 function caseForm(r = {}) {
   const v = k => esc(r[k] || '');
@@ -872,12 +920,56 @@ function caseForm(r = {}) {
     <label class="f">Asunto del correo con la aseguradora<input id="fAA" value="${v('AsuntoAseguradora')}"></label>
     <label class="f">Correo de la aseguradora<input id="fCA" value="${v('CorreoAseguradora')}" type="email"></label>
     ${r.id ? '' : `<label class="f">Esperando a<select id="fW">${Object.keys(P).map(k => `<option value="${k}">${P[k].t}</option>`).join('')}</select></label>
-    <label class="f">Próximo seguimiento<input type="date" id="fDate" value="${biz(addD(TODAY, 1))}"></label>
+    <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:#3C4757">Próximo seguimiento<button type="button" class="datef" data-a="pickField" data-for="fDate"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>${fdl(biz(addD(TODAY, 1)))}</span></button><input type="hidden" id="fDate" value="${biz(addD(TODAY, 1))}"></div>
     <label class="f" style="grid-column:span 2">Notas<textarea id="fNotas" rows="2"></textarea></label>`}
   </div>
   <datalist id="asegs">${[...new Set(REC.map(x => x.Aseguradora).filter(Boolean))].map(a => `<option value="${esc(a)}">`).join('')}</datalist>
   <div style="display:flex;justify-content:flex-end;gap:10px"><button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="saveCase" data-id="${r.id || ''}">Guardar</button></div>`);
   $('fTitle').focus();
+}
+
+// ---- calendario propio (día/mes/año) ----
+let PK = null;
+const MESL = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+function closePicker() { if (!PK) return; PK.el.remove(); document.removeEventListener('mousedown', pkOutside, true); window.removeEventListener('scroll', pkPlace, true); window.removeEventListener('resize', pkPlace); PK = null; }
+function pkOutside(e) { if (PK && !PK.el.contains(e.target) && !PK.anchor.contains(e.target)) closePicker(); }
+function pkPlace() {
+  if (!PK) return; const r = PK.anchor.getBoundingClientRect(), el = PK.el, w = el.offsetWidth, ht = el.offsetHeight;
+  let left = Math.min(Math.max(8, r.left), innerWidth - w - 8), top = r.bottom + 6;
+  if (top + ht > innerHeight - 8) top = Math.max(8, r.top - ht - 6);
+  el.style.left = left + 'px'; el.style.top = top + 'px';
+}
+function openPicker(anchor, cur, onPick) {
+  if (PK && PK.anchor === anchor) return closePicker();
+  closePicker();
+  const el = document.createElement('div'); el.className = 'pk'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Elegir fecha');
+  document.body.appendChild(el);
+  const base = D(cur || TODAY);
+  PK = { el, anchor, onPick, cur: cur || '', y: base.getFullYear(), m: base.getMonth() };
+  el.addEventListener('click', e => {
+    const n = e.target.closest('[data-pkn]'), dd = e.target.closest('[data-pk]');
+    if (n) { PK.m += +n.dataset.pkn; if (PK.m < 0) { PK.m = 11; PK.y--; } if (PK.m > 11) { PK.m = 0; PK.y++; } pkDraw(); }
+    else if (dd) { const f = PK.onPick, v = dd.dataset.pk; closePicker(); f(v); }
+  });
+  el.addEventListener('keydown', e => { if (e.key === 'Escape') { const a = PK.anchor; closePicker(); a.focus(); } });
+  pkDraw(); pkPlace();
+  document.addEventListener('mousedown', pkOutside, true); window.addEventListener('scroll', pkPlace, true); window.addEventListener('resize', pkPlace);
+  (el.querySelector('.sel') || el.querySelector('.td') || el.querySelector('[data-pk]')).focus();
+}
+function pkDraw() {
+  const { y, m, cur } = PK, off = (new Date(y, m, 1).getDay() + 6) % 7, days = new Date(y, m + 1, 0).getDate();
+  const nextMon = (() => { const x = D(TODAY); x.setDate(x.getDate() + ((8 - x.getDay()) % 7 || 7)); return ymd(x); })();
+  const quick = [['Mañana', biz(addD(TODAY, 1))], ['En 2 días', biz(addD(TODAY, 2))], ['Próximo lunes', nextMon], ['En 1 semana', biz(addD(TODAY, 7))], ['En 2 semanas', biz(addD(TODAY, 14))]];
+  let cells = '';
+  for (let i = 0; i < off; i++) cells += '<i></i>';
+  for (let d = 1; d <= days; d++) {
+    const k = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`, wd = new Date(y, m, d).getDay();
+    cells += `<button type="button" data-pk="${k}" class="${[wd === 0 || wd === 6 ? 'we' : '', k === TODAY ? 'td' : '', k === cur ? 'sel' : ''].join(' ')}" aria-label="${fdl(k)}">${d}</button>`;
+  }
+  PK.el.innerHTML = `<div class="q">${quick.map(([l, k]) => `<button type="button" data-pk="${k}" title="${fdl(k)}">${l}</button>`).join('')}</div>
+    <div class="hd"><button type="button" data-pkn="-1" aria-label="Mes anterior">‹</button><span>${MESL[m].charAt(0).toUpperCase() + MESL[m].slice(1)} ${y}</span><button type="button" data-pkn="1" aria-label="Mes siguiente">›</button></div>
+    <div class="g">${['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(x => `<span>${x}</span>`).join('')}${cells}</div>
+    <div class="ft">${cur ? 'Actual: ' + fdl(cur) : 'Sin fecha'}</div>`;
 }
 
 const ACT = {
@@ -918,14 +1010,17 @@ const ACT = {
     await addSeg(r, 'Se abre el reclamo en el sistema', f.Esperando);
     closeModal(); location.hash = 'caso-' + r.id;
   },
-  async move(d) { const r = REC.find(x => x.id === +d.id); const base = (r.ProximoSeguimiento && r.ProximoSeguimiento > TODAY) ? r.ProximoSeguimiento : TODAY; await moveTo(r, biz(addD(base, +d.n))); },
+  move(d) { const r = REC.find(x => x.id === +d.id); const base = (r.ProximoSeguimiento && r.ProximoSeguimiento > TODAY) ? r.ProximoSeguimiento : TODAY; moveTo(r, biz(addD(base, +d.n))); },
+  pickMove: (d, el) => { const r = REC.find(x => x.id === +d.id); openPicker(el, r.ProximoSeguimiento, date => moveTo(r, date)); },
+  pickField: (d, el) => { const inp = $(d.for); openPicker(el, inp.value, date => { inp.value = date; el.querySelector('span').textContent = fdl(date); }); },
   pickW: d => { NEWW = d.k; paintW(); },
-  async saveSeg(d) {
+  saveSeg(d) {
     const r = REC.find(x => x.id === +d.id), txt = $('nTxt').value.trim(), date = $('nDate').value;
-    if (!txt) return toast('Escribe qué pasó');
-    await addSeg(r, txt, NEWW);
-    await patchRec(r, { Esperando: NEWW, ProximoSeguimiento: date || r.ProximoSeguimiento });
-    toast('Seguimiento guardado'); viewCaso(r.id);
+    if (!txt) { $('nTxt').focus(); return toast('Escribe qué pasó'); }
+    const a = segLocal(r, txt, NEWW), b = patchLocal(r, { Esperando: NEWW, ProximoSeguimiento: date || r.ProximoSeguimiento });
+    toast(`Seguimiento guardado · próximo ${fdl(date || r.ProximoSeguimiento)}`);
+    viewCaso(r.id);
+    bg(() => Promise.all([a.req(), b.req()]), () => { a.revert(); b.revert(); });
   },
   async toggleClose(d) {
     const r = REC.find(x => x.id === +d.id), open = isOpen(r);
