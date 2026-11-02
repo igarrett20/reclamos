@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reclamos · Garrett Unicen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+<style>
+:root{--ink:#0F1B2D;--mut:#5A6577;--line:#E3E7ED;--bg:#F5F7FA;--teal:#2F6F7A;--red:#B42318;--amber:#92400E}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Instrument Sans',system-ui,sans-serif;color:var(--ink);background:#fff}
+a{color:var(--teal)}
+button{font:inherit;cursor:pointer}
+input,textarea,select{font:inherit;color:var(--ink)}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px}
+header{border-bottom:1px solid #E8EBF0;background:#fff;position:sticky;top:0;z-index:5}
+.hwrap{max-width:1360px;margin:0 auto;padding:12px 32px;display:flex;flex-wrap:wrap;align-items:center;gap:20px}
+.logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#2F6F7A,#5AA5A8);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+nav{display:flex;gap:4px;flex:1}
+nav a{padding:10px 14px;border-radius:8px;font-weight:500;font-size:14px;text-decoration:none;color:#3C4757}
+nav a.on{background:#EAF3F3;color:var(--teal);font-weight:600}
+.av{width:36px;height:36px;border-radius:50%;background:#E4EEF0;color:var(--teal);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+main{max-width:1360px;margin:0 auto;padding:32px}
+h1{margin:0;font-size:40px;letter-spacing:-.025em}
+.sub{color:var(--mut)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.grid5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+@media(max-width:900px){.grid2,.grid4,.grid5{grid-template-columns:1fr 1fr}h1{font-size:30px}main{padding:20px}}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px}
+.mod{border-radius:20px;overflow:hidden;box-shadow:0 6px 24px rgba(15,27,45,.06)}
+.mod .bar{height:5px;background:linear-gradient(90deg,#2F6F7A,#7CC4C0)}
+.mod .in{padding:30px 30px 22px;display:flex;flex-direction:column;gap:12px}
+.ico{width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,#2F6F7A,#5AA5A8);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(47,111,122,.3)}
+.stats3{border-top:1px solid #E8EBF0;padding-top:20px;margin-top:6px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stats3 b{font-size:24px;display:block}.stats3 span{font-size:14px;color:var(--mut)}
+.chips{border-top:1px dashed var(--line);padding:18px 30px 22px;display:flex;flex-wrap:wrap;gap:10px}
+.chip{display:inline-flex;align-items:center;min-height:42px;padding:0 18px;border-radius:999px;border:1px solid #D5DBE4;background:#fff;font-size:14px;font-weight:600;color:var(--ink)}
+.chip.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.soon{border:1.5px dashed #CBD3DD;border-radius:20px;padding:30px;background:#FAFBFC;display:flex;flex-direction:column;justify-content:center;gap:10px;color:var(--mut)}
+.kpi{background:#F7F9FB;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:4px}
+.kpi span{font-size:13px;color:var(--mut);font-weight:500}.kpi b{font-size:30px;letter-spacing:-.02em}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:0 16px;border-radius:10px;border:1px solid #D5DBE4;background:#fff;font-size:14px;font-weight:600;color:#3C4757;text-decoration:none}
+.btn.pri{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.sm{min-height:32px;padding:0 10px;font-size:12px;border-radius:8px}
+.btn.danger{color:var(--red)}
+.row{display:grid;grid-template-columns:2.2fr .9fr 1fr 1fr 1fr 1.4fr;gap:12px;padding:12px 18px;border-bottom:1px solid #EEF1F5;align-items:center}
+.row.h{background:#F8FAFC;font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.row .nm{font-weight:600;font-size:14px;color:var(--ink);text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .ls{font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tscroll{overflow-x:auto}.tscroll>div{min-width:900px}
+.flex{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.colm{flex:999 1 600px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.cols{flex:1 1 360px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.tips{background:#F3F8F8;border:1px solid #D6E8E8;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px}
+.tip{background:#fff;border-radius:12px;padding:11px 14px}
+.tip small{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--teal);margin-bottom:3px}
+.tip span{font-size:13px;line-height:1.5;color:#3C4757}
+.bars{display:grid;grid-template-columns:90px 1fr 30px;gap:10px;align-items:center;font-size:13px}
+.track{height:10px;border-radius:5px;background:#EEF1F5}.track i{display:block;height:10px;border-radius:5px;background:var(--teal)}
+.pad{padding:20px}
+.line{border-top:4px solid}
+.tl{display:grid;grid-template-columns:70px 16px 1fr;gap:12px}
+.tl .dot{width:12px;height:12px;border-radius:50%;margin-top:4px}
+.tl .st{width:2px;flex:1;background:var(--line);min-height:24px}
+.ev{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.evi{border:1px solid var(--line);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--ink)}
+.evi .th{height:100px;background:#EEF1F5 center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--mut)}
+.evi .nm{padding:7px 10px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drop{min-height:64px;border-radius:12px;border:1.5px dashed #B9C3D0;background:#F8FAFC;font-weight:600;color:#3C4757;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.drop.over{background:#EAF3F3;border-color:var(--teal)}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:#3C4757}
+label.f input,label.f textarea,label.f select{font-weight:400;font-size:14px;padding:10px 12px;border-radius:10px;border:1px solid #D5DBE4;background:#fff}
+#modal{position:fixed;inset:0;background:rgba(15,27,45,.45);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;z-index:20}
+#modal .box{background:#fff;border-radius:18px;max-width:720px;width:100%;padding:24px;display:flex;flex-direction:column;gap:14px}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;display:none;z-index:30;max-width:90vw}
+.center{min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;color:var(--mut)}
+.search{display:flex;align-items:center;gap:8px;border:1px solid #D5DBE4;border-radius:10px;padding:0 12px;min-height:42px;min-width:280px;background:#fff}
+.search input{border:none;outline:none;flex:1;font-size:14px;background:transparent}
+</style>
+</head>
+<body>
+<header id="hdr" hidden>
+  <div class="hwrap">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="logo">GU</div>
+      <div><div style="font-weight:700">Reclamos</div><div style="font-size:12px;color:var(--mut)">Garrett Unicen Corredora de Seguros</div></div>
+    </div>
+    <nav><a href="#inicio" id="nInicio">Inicio</a><a href="#seguimientos" id="nSeg">Seguimientos</a></nav>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="text-align:right"><div id="uName" style="font-size:14px;font-weight:600"></div><a href="#" data-a="logout" style="font-size:12px">Cerrar sesión</a></div>
+      <div class="av" id="uAv"></div>
+    </div>
+  </div>
+</header>
+<main id="app"><div class="center">Cargando…</div></main>
+<div id="modal"><div class="box" id="mbox"></div></div>
+<div id="toast"></div>
+<input type="file" id="fileIn" multiple hidden>
+<input type="file" id="jsonIn" accept=".json" hidden>
+
+<script>
+// ====== CONFIGURACIÓN ======
+const CONFIG = {
+  clientId: 'f0e84e7f-82f3-4f42-9ebb-4e95e1fca868',
+  tenantId: '6d19a314-7bcf-411f-b9fd-8f6bc92c1e7b',
+  host: 'aurainnovacionessa.sharepoint.com',
+  sitePath: '/sites/Reclamos'
+};
+const LISTS = { rec: 'Reclamos', seg: 'Seguimientos', evi: 'Evidencias' };
+const GRAPH = ['User.Read', 'Sites.Manage.All'];
+const SP_SCOPE = [`https://${CONFIG.host}/AllSites.Manage`];
+const MAIL = ['Mail.Read'];
+
+const P = {
+  cliente:     { t: 'Cliente',     c: '#1D4ED8', bg: '#E8F0FE', bar: '#2563EB' },
+  aseguradora: { t: 'Aseguradora', c: '#9A3412', bg: '#FDEDE3', bar: '#C2410C' },
+  corredora:   { t: 'Corredora',   c: '#6D28D9', bg: '#F1EBFD', bar: '#7C3AED' },
+  garrett:     { t: 'Garrett',     c: '#334155', bg: '#EEF1F5', bar: '#64748B' }
+};
+const TIPOS = { AU: 'Autos', IN: 'Incendio / propiedad', RC: 'Resp. civil', GM: 'Gastos médicos' };
+
+// ====== ESTADO ======
+let pca, ME = '', S = '', LID = {}, DRIVE = '', REC = [], SEG = [];
+let VIEW = { f: 'abiertos', q: '', all: false };
+const TODAY = ymd(new Date());
+
+// ====== FECHAS ======
+function D(s) { const [y, m, d] = String(s).slice(0, 10).split('-').map(Number); return new Date(y, m - 1, d); }
+function ymd(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function addD(s, n) { const d = D(s); d.setDate(d.getDate() + n); return ymd(d); }
+function biz(s) { const d = D(s); while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1); return ymd(d); }
+function diff(a, b) { return Math.round((D(a) - D(b)) / 864e5); }
+const DIAS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'], MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+function fd(s) { if (!s) return '—'; const d = D(s); return `${DIAS[d.getDay()]} ${d.getDate()} ${MES[d.getMonth()]}`; }
+function rel(s) { if (!s) return ''; const n = diff(s, TODAY); return n === 0 ? 'hoy' : n < 0 ? `hace ${-n} día${n === -1 ? '' : 's'}` : n === 1 ? 'mañana' : `en ${n} días`; }
+function dColor(s) { if (!s) return '#3C4757'; return s < TODAY ? 'var(--red)' : s === TODAY ? 'var(--amber)' : '#3C4757'; }
+const LONG = new Intl.DateTimeFormat('es-CR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+// ====== UTIL ======
+const $ = id => document.getElementById(id);
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function toast(m, ms = 3500) { const t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._t); t._t = setTimeout(() => t.style.display = 'none', ms); }
+function modal(html) { $('mbox').innerHTML = html; $('modal').style.display = 'flex'; }
+function closeModal() { $('modal').style.display = 'none'; }
+function pill(k) { const p = P[k] || P.garrett; return `<span class="pill" style="background:${p.bg};color:${p.c}">${p.t}</span>`; }
+const isOpen = r => r.Estado !== 'Cerrado';
+const segsOf = id => SEG.filter(s => Number(s.ReclamoId) === id).sort((a, b) => (b.Fecha || '').localeCompare(a.Fecha || '') || b.id - a.id);
+const core = s => String(s || '').replace(/^\s*((re|rv|fw|fwd)\s*:\s*)+/i, '').trim();
+const tipo = r => TIPOS[String(r.Ref || '').slice(0, 2).toUpperCase()] || 'Otros';
+const initials = n => String(n || '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ====== AUTH + GRAPH ======
+async function token(scopes = GRAPH) {
+  const account = pca.getActiveAccount();
+  try { return (await pca.acquireTokenSilent({ scopes, account })).accessToken; }
+  catch (e) {
+    if (e instanceof msal.InteractionRequiredAuthError && scopes === GRAPH) { await pca.acquireTokenRedirect({ scopes }); }
+    throw e;
+  }
+}
+async function g(path, opt = {}) {
+  const t = await token();
+  const url = path.startsWith('http') ? path : 'https://graph.microsoft.com/v1.0' + path;
+  const r = await fetch(url, { ...opt, headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json', ...(opt.headers || {}) } });
+  if (r.status === 204) return null;
+  const j = await r.json().catch(() => null);
+  if (!r.ok) { const e = new Error(j?.error?.message || ('Error ' + r.status)); e.status = r.status; throw e; }
+  return j;
+}
+async function gAll(path) { let out = [], url = path; while (url) { const j = await g(url); out = out.concat(j.value || []); url = j['@odata.nextLink']; } return out; }
+async function batch(reqs) {
+  // reqs: [{method,url,body}] -> responses en el mismo orden; reintenta 429/503
+  const res = new Array(reqs.length);
+  for (let i = 0; i < reqs.length; i += 20) {
+    let pend = reqs.slice(i, i + 20).map((r, k) => ({ ...r, id: String(i + k) }));
+    for (let tries = 0; pend.length && tries < 6; tries++) {
+      const j = await g('/$batch', { method: 'POST', body: JSON.stringify({ requests: pend.map(r => ({ id: r.id, method: r.method, url: r.url, headers: { 'Content-Type': 'application/json' }, body: r.body })) }) });
+      const retry = [];
+      for (const x of j.responses) {
+        if (x.status === 429 || x.status === 503) retry.push(pend.find(p => p.id === x.id));
+        else res[+x.id] = x;
+      }
+      pend = retry;
+      if (pend.length) await sleep(4000 * (tries + 1));
+    }
+  }
+  return res;
+}
+const itemsUrl = k => `/sites/${S}/lists/${LID[k]}/items`;
+
+// ====== ARRANQUE ======
+async function init() {
+  if (CONFIG.clientId.startsWith('PEGAR')) { $('app').innerHTML = '<div class="center">Falta poner el Client ID y el Tenant ID en CONFIG.</div>'; return; }
+  pca = new msal.PublicClientApplication({
+    auth: { clientId: CONFIG.clientId, authority: 'https://login.microsoftonline.com/' + CONFIG.tenantId, redirectUri: location.origin + location.pathname },
+    cache: { cacheLocation: 'localStorage' }
+  });
+  await pca.initialize();
+  const res = await pca.handleRedirectPromise();
+  if (res?.account) pca.setActiveAccount(res.account);
+  const acc = pca.getActiveAccount() || pca.getAllAccounts()[0];
+  if (!acc) return pca.loginRedirect({ scopes: GRAPH });
+  pca.setActiveAccount(acc);
+  ME = acc.name || acc.username;
+  $('uName').textContent = ME; $('uAv').textContent = initials(ME); $('hdr').hidden = false;
+  try {
+    $('app').innerHTML = '<div class="center">Conectando con SharePoint…</div>';
+    S = (await g(`/sites/${CONFIG.host}:${CONFIG.sitePath}`)).id;
+    await ensureLists();
+    await loadAll();
+    route();
+  } catch (e) {
+    console.error(e);
+    $('app').innerHTML = `<div class="center"><b style="color:var(--ink);font-size:18px">No se pudo cargar</b><div>${esc(e.message)}</div><div>Si es la primera vez, pídele a Ian que te dé acceso a las listas de Reclamos.</div></div>`;
+  }
+}
+
+async function ensureLists() {
+  const have = await gAll(`/sites/${S}/lists?$select=id,displayName`);
+  const find = n => have.find(l => l.displayName === n)?.id;
+  for (const k in LISTS) LID[k] = find(LISTS[k]);
+  const missing = Object.keys(LISTS).filter(k => !LID[k]);
+  if (missing.length) {
+    $('app').innerHTML = '<div class="center">Creando las listas en SharePoint (solo la primera vez)…</div>';
+    const T = n => ({ name: n, text: { maxLength: 255 } }), M = n => ({ name: n, text: { allowMultipleLines: true } }), N = n => ({ name: n, number: {} });
+    const DEF = {
+      rec: { cols: [T('Ref'), T('Aseguradora'), T('Poliza'), T('AsuntoCliente'), T('CorreoCliente'), T('AsuntoAseguradora'), T('CorreoAseguradora'), M('Notas'), T('Estado'), T('Esperando'), T('ProximoSeguimiento'), T('IdAnterior')], tpl: 'genericList' },
+      seg: { cols: [N('ReclamoId'), M('Texto'), T('Fecha'), T('Esperando'), T('Autor'), T('IdAnterior')], tpl: 'genericList' },
+      evi: { cols: [], tpl: 'documentLibrary' }
+    };
+    for (const k of missing) {
+      try {
+        const body = { displayName: LISTS[k], list: { template: DEF[k].tpl } };
+        if (DEF[k].cols.length) body.columns = DEF[k].cols;
+        LID[k] = (await g(`/sites/${S}/lists`, { method: 'POST', body: JSON.stringify(body) })).id;
+      } catch (e) {
+        if (e.status === 403) throw new Error('Tu cuenta no tiene acceso a las listas de Reclamos.');
+        throw e;
+      }
+    }
+    await pinQuickLaunch(missing.map(k => LISTS[k]));
+  }
+  DRIVE = (await g(`/sites/${S}/lists/${LID.evi}/drive?$select=id`)).id;
+}
+
+async function pinQuickLaunch(titles) {
+  let t;
+  try { t = (await pca.acquireTokenSilent({ scopes: SP_SCOPE, account: pca.getActiveAccount() })).accessToken; }
+  catch (e) { toast('Listas creadas, pero no se pudieron fijar en la barra lateral (falta el permiso AllSites.Manage).', 7000); return; }
+  for (const title of titles) {
+    try {
+      await fetch(`https://${CONFIG.host}${CONFIG.sitePath}/_api/web/lists/getbytitle('${title}')`, {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + t, Accept: 'application/json;odata=nometadata', 'Content-Type': 'application/json;odata=nometadata', 'IF-MATCH': '*', 'X-HTTP-Method': 'MERGE' },
+        body: JSON.stringify({ OnQuickLaunch: true })
+      });
+    } catch (e) { console.warn('Quick launch', title, e); }
+  }
+}
+
+async function loadAll() {
+  const [r, s] = await Promise.all([gAll(itemsUrl('rec') + '?$expand=fields&$top=999'), gAll(itemsUrl('seg') + '?$expand=fields&$top=999')]);
+  REC = r.map(i => ({ ...i.fields, id: +i.id }));
+  SEG = s.map(i => ({ ...i.fields, id: +i.id }));
+}
+
+// ====== RUTAS ======
+window.addEventListener('hashchange', route);
+function route() {
+  if (!S) return;
+  const h = location.hash.slice(1) || 'inicio';
+  $('nInicio').classList.toggle('on', h === 'inicio');
+  $('nSeg').classList.toggle('on', h !== 'inicio');
+  window.scrollTo(0, 0);
+  if (h.startsWith('caso-')) return viewCaso(+h.slice(5));
+  if (h === 'seguimientos') return viewSeg();
+  viewInicio();
+}
+
+// ====== NÚMEROS Y TIPS ======
+function nums() {
+  const open = REC.filter(isOpen), wk = addD(TODAY, 6);
+  return {
+    open, abiertos: open.length, cerrados: REC.length - open.length,
+    atrasados: open.filter(r => r.ProximoSeguimiento && r.ProximoSeguimiento < TODAY).length,
+    hoy: open.filter(r => r.ProximoSeguimiento === TODAY).length,
+    semana: open.filter(r => r.ProximoSeguimiento > TODAY && r.ProximoSeguimiento <= wk).length
+  };
+}
+function firstDate(r) { const s = segsOf(r.id); return s.length ? s[s.length - 1].Fecha : String(r.Created || '').slice(0, 10); }
+function streak(r) { const s = segsOf(r.id); if (s.length < 3) return null; const k = s[0].Esperando; return s.slice(0, 3).every(x => x.Esperando === k) && k === r.Esperando ? k : null; }
+
+function tips() {
+  const open = REC.filter(isOpen), out = [];
+  const late = open.filter(r => r.ProximoSeguimiento && r.ProximoSeguimiento < TODAY).sort((a, b) => a.ProximoSeguimiento.localeCompare(b.ProximoSeguimiento));
+  if (late.length) out.push({ rule: 'Atrasados', text: `Hay ${late.length} seguimiento${late.length > 1 ? 's' : ''} vencido${late.length > 1 ? 's' : ''}. El más atrasado es ${late[0].Title} (${rel(late[0].ProximoSeguimiento)}).`, id: late[0].id });
+  // mismo cliente
+  const byC = {};
+  open.forEach(r => { const k = String(r.Title || '').split('/')[0].trim().toUpperCase(); if (k) (byC[k] = byC[k] || []).push(r); });
+  Object.entries(byC).filter(([, v]) => v.length >= 3).sort((a, b) => b[1].length - a[1].length).slice(0, 2).forEach(([k, v]) => {
+    const wc = v.filter(r => r.Esperando === 'cliente').length;
+    out.push({ rule: 'Mismo cliente', text: `${k} tiene ${v.length} reclamos abiertos${wc > 1 ? ` y ${wc} esperan al cliente` : ''}. Un solo correo o llamada puede mover varios.` });
+  });
+  // misma póliza
+  const byP = {};
+  open.forEach(r => { const k = String(r.Poliza || '').replace(/\s/g, '').toUpperCase(); if (k.length >= 4) (byP[k] = byP[k] || []).push(r); });
+  Object.entries(byP).filter(([, v]) => v.length >= 2).slice(0, 2).forEach(([k, v]) => {
+    out.push({ rule: 'Misma póliza', text: `Hay ${v.length} reclamos abiertos en la póliza ${k} (${[...new Set(v.map(r => r.Title))].join(', ')}). Dales seguimiento juntos.` });
+  });
+  // aseguradora acumulada
+  const byA = {};
+  open.filter(r => r.Esperando === 'aseguradora').forEach(r => { const k = r.Aseguradora || '—'; byA[k] = (byA[k] || 0) + 1; });
+  const topA = Object.entries(byA).sort((a, b) => b[1] - a[1])[0];
+  if (topA && topA[1] >= 4) out.push({ rule: 'Aseguradora', text: `${topA[0]} tiene ${topA[1]} reclamos esperando su respuesta. Un correo agrupado al ejecutivo ahorra tiempo.` });
+  // sin respuesta
+  const quiet = open.filter(r => streak(r) === 'cliente');
+  if (quiet.length) out.push({ rule: 'Sin respuesta', text: `${quiet.length} cliente${quiet.length > 1 ? 's llevan' : ' lleva'} 3 seguimientos seguidos sin responder${quiet.length <= 3 ? ` (${quiet.map(r => r.Title).join(', ')})` : ''}. Prueba con llamada o WhatsApp.` });
+  // caso antiguo
+  const old = open.map(r => ({ r, d: firstDate(r) })).filter(x => x.d).sort((a, b) => a.d.localeCompare(b.d))[0];
+  if (old && diff(TODAY, old.d) >= 60) out.push({ rule: 'Caso antiguo', text: `El reclamo abierto más antiguo es ${old.r.Title}, con ${diff(TODAY, old.d)} días. Vale la pena escalarlo.`, id: old.r.id });
+  // día cargado
+  const hoy = open.filter(r => r.ProximoSeguimiento === TODAY).length;
+  let d = TODAY, cnt = 0, days = 0;
+  while (days < 5) { d = addD(d, 1); if ([0, 6].includes(D(d).getDay())) continue; days++; cnt += open.filter(r => r.ProximoSeguimiento === d).length; }
+  const avg = cnt / 5;
+  if (hoy >= 5 && hoy >= avg * 1.5) out.push({ rule: 'Día cargado', text: `Hoy hay ${hoy} seguimientos contra unos ${Math.round(avg)} por día el resto de la semana. Puedes mover algunos sin atrasarlos.` });
+  return out;
+}
+function tipsHtml(list) {
+  if (!list.length) return '<div class="tip"><span>Todo en orden, no hay nada que destacar.</span></div>';
+  return list.map(t => `<div class="tip"><small>${t.rule}</small><span>${esc(t.text)}</span>${t.id ? ` <a href="#caso-${t.id}" style="font-size:12px;font-weight:600">Ver</a>` : ''}</div>`).join('');
+}
+function waitBar(open) {
+  const c = {}; open.forEach(r => c[r.Esperando] = (c[r.Esperando] || 0) + 1);
+  const tot = open.length || 1, keys = Object.keys(P).filter(k => c[k]);
+  return `<div class="card pad" style="display:flex;flex-direction:column;gap:12px"><b>Esperando a</b>
+    <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;gap:2px">${keys.map(k => `<div style="width:${c[k] / tot * 100}%;background:${P[k].bar}"></div>`).join('')}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:#3C4757">${keys.map(k => `<span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:3px;background:${P[k].bar}"></i>${P[k].t} ${c[k]}</span>`).join('')}</div></div>`;
+}
+
+// ====== VISTA: INICIO ======
+function viewInicio() {
+  const n = nums();
+  const due = n.open.filter(r => r.ProximoSeguimiento && r.ProximoSeguimiento <= TODAY).sort((a, b) => a.ProximoSeguimiento.localeCompare(b.ProximoSeguimiento));
+  const hour = new Date().getHours(), saludo = hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches';
+  const fecha = LONG.format(new Date()); 
+  $('app').innerHTML = `
+  <div style="display:flex;flex-direction:column;gap:32px">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <span class="sub" style="font-weight:600">${fecha.charAt(0).toUpperCase() + fecha.slice(1)}</span>
+      <h1>${saludo}, ${esc(ME.split(' ')[0])}</h1>
+      <span class="sub" style="font-size:17px">Elige un módulo para empezar.</span>
+    </div>
+    <div class="grid2">
+      <div class="card mod"><div class="bar"></div>
+        <div class="in">
+          <div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6l1 1 2-2M3 12l1 1 2-2M3 18l1 1 2-2"/></svg></div>
+          <h2 style="margin:4px 0 0;font-size:26px">Seguimientos</h2>
+          <span class="sub" style="font-size:16px">Reclamos abiertos, dash por cliente, líneas de correo y evidencias</span>
+          <div class="stats3"><div><b>${n.abiertos}</b><span>Abiertos</span></div><div><b style="color:var(--red)">${n.atrasados}</b><span>Atrasados</span></div><div><b style="color:var(--amber)">${n.hoy}</b><span>Para hoy</span></div></div>
+          <a href="#seguimientos" style="font-size:17px;font-weight:600;text-decoration:none;min-height:40px;display:inline-flex;align-items:center;gap:8px">Abrir →</a>
+        </div>
+        <div class="chips"><a class="chip" href="#seguimientos" data-a="goFilter" data-f="hoy">Para hoy</a><a class="chip" href="#" data-a="newCase">Nuevo cliente</a><a class="chip" href="#seguimientos" data-a="goFilter" data-f="cerrados">Cerrados</a></div>
+      </div>
+      <div class="soon"><b style="font-size:22px">Próximo módulo</b><span>Aquí entra la siguiente sección cuando la armemos.</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="margin:0;font-size:22px">Resumen del día</h2>
+      <div class="grid4">
+        <div class="kpi"><span>Reclamos abiertos</span><b>${n.abiertos}</b><span>${n.cerrados} cerrados en total</span></div>
+        <div class="kpi"><span>Atrasados</span><b style="color:var(--red)">${n.atrasados}</b><span>Fecha de seguimiento vencida</span></div>
+        <div class="kpi"><span>Para hoy</span><b style="color:var(--amber)">${n.hoy}</b><span>${fd(TODAY)}</span></div>
+        <div class="kpi"><span>Próximos 6 días</span><b style="color:var(--teal)">${n.semana}</b><span>Hasta el ${fd(addD(TODAY, 6))}</span></div>
+      </div>
+      <div class="flex">
+        <div class="colm card" style="gap:0;overflow:hidden">
+          <div style="padding:16px 20px;border-bottom:1px solid #EEF1F5;display:flex;justify-content:space-between"><b>Para hoy y atrasados</b><span class="sub" style="font-size:13px">${due.length} casos</span></div>
+          ${due.slice(0, 8).map(r => { const l = segsOf(r.id)[0]; return `
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid #EEF1F5">
+              <span class="pill" style="min-width:76px;text-align:center;background:${r.ProximoSeguimiento < TODAY ? '#FDECEA' : '#FEF3C7'};color:${dColor(r.ProximoSeguimiento)}">${r.ProximoSeguimiento < TODAY ? `${-diff(r.ProximoSeguimiento, TODAY)} días` : 'Hoy'}</span>
+              <div style="flex:1 1 220px;min-width:0"><a href="#caso-${r.id}" style="font-weight:600;color:var(--ink);text-decoration:none">${esc(r.Title)}</a><div class="sub" style="font-size:13px">${esc(l?.Texto || 'Sin seguimientos')}</div></div>
+              <span class="mono">${esc(r.Ref)}</span><span style="font-size:13px;min-width:70px">${esc(r.Aseguradora)}</span>${pill(r.Esperando)}
+            </div>`; }).join('') || '<div class="pad sub">Nada pendiente para hoy.</div>'}
+          <a href="#seguimientos" data-a="goFilter" data-f="atrasados" style="padding:14px 20px;font-size:14px;font-weight:600;text-decoration:none">Ver todos →</a>
+        </div>
+        <div class="cols">
+          <div class="tips"><b>Tips</b>${tipsHtml(tips().slice(0, 4))}</div>
+          ${waitBar(n.open)}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ====== VISTA: SEGUIMIENTOS ======
+const FILTERS = [
+  ['abiertos', 'Abiertos', r => isOpen(r)],
+  ['atrasados', 'Atrasados', r => isOpen(r) && r.ProximoSeguimiento && r.ProximoSeguimiento < TODAY],
+  ['hoy', 'Hoy', r => isOpen(r) && r.ProximoSeguimiento === TODAY],
+  ['cliente', 'Esperando cliente', r => isOpen(r) && r.Esperando === 'cliente'],
+  ['aseguradora', 'Esperando aseguradora', r => isOpen(r) && r.Esperando === 'aseguradora'],
+  ['otros', 'Corredora / Garrett', r => isOpen(r) && ['corredora', 'garrett'].includes(r.Esperando)],
+  ['cerrados', 'Cerrados', r => !isOpen(r)]
+];
+function viewSeg() {
+  const n = nums();
+  const fn = (FILTERS.find(f => f[0] === VIEW.f) || FILTERS[0])[2];
+  const q = VIEW.q.toLowerCase();
+  let list = REC.filter(fn).filter(r => !q || [r.Title, r.Ref, r.Aseguradora, r.Poliza, r.AsuntoCliente, r.AsuntoAseguradora].join(' ').toLowerCase().includes(q));
+  list.sort((a, b) => VIEW.f === 'cerrados' ? b.id - a.id : (a.ProximoSeguimiento || '9').localeCompare(b.ProximoSeguimiento || '9'));
+  const shown = VIEW.all ? list : list.slice(0, 40);
+  const byA = {}; n.open.forEach(r => { const k = r.Aseguradora || '—'; byA[k] = (byA[k] || 0) + 1; });
+  const aTop = Object.entries(byA).sort((a, b) => b[1] - a[1]); const aMax = aTop[0]?.[1] || 1;
+  const aRows = aTop.slice(0, 6); if (aTop.length > 6) aRows.push(['Otras', aTop.slice(6).reduce((s, x) => s + x[1], 0)]);
+  const byT = {}; n.open.forEach(r => { const k = tipo(r); byT[k] = (byT[k] || 0) + 1; });
+  const ages = n.open.map(firstDate).filter(Boolean).map(d => diff(TODAY, d));
+  const avgAge = ages.length ? Math.round(ages.reduce((a, b) => a + b, 0) / ages.length) : 0;
+  const pct = x => Math.round(x / (n.abiertos || 1) * 100) + '%';
+  $('app').innerHTML = `
+  <div style="display:flex;flex-direction:column;gap:22px">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px">
+      <h1 style="font-size:30px">Seguimientos</h1>
+      <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5A6577" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" placeholder="Buscar cliente, ref, póliza o asunto" value="${esc(VIEW.q)}" aria-label="Buscar"></label>
+        <button class="btn" data-a="importJson">Importar sistema viejo</button>
+        <button class="btn pri" data-a="newCase">+ Nuevo cliente</button>
+      </div>
+    </div>
+    <div class="grid5">
+      ${[['Abiertos', n.abiertos, '100%', 'var(--teal)'], ['Atrasados', n.atrasados, pct(n.atrasados), 'var(--red)'], ['Para hoy', n.hoy, pct(n.hoy), '#B54708'], ['Próximos 6 días', n.semana, pct(n.semana), '#2563EB'], ['Días abiertos (prom.)', avgAge, Math.min(avgAge / 120 * 100, 100) + '%', '#475569']]
+        .map(([l, v, w, c]) => `<div class="card" style="padding:16px;display:flex;flex-direction:column;gap:6px"><span class="sub" style="font-size:13px">${l}</span><b style="font-size:28px;color:${c}">${v}</b><div class="track" style="height:6px"><i style="height:6px;width:${w};background:${c}"></i></div></div>`).join('')}
+    </div>
+    <div class="flex">
+      <div class="colm">
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          ${FILTERS.map(([k, l, f]) => `<button class="chip ${VIEW.f === k ? 'on' : ''}" data-a="filter" data-f="${k}">${l} · ${REC.filter(f).length}</button>`).join('')}
+        </div>
+        <div class="card tscroll"><div>
+          <div class="row h"><span>Cliente</span><span>Ref</span><span>Aseguradora</span><span>Esperando</span><span>Seguimiento</span><span>Mover</span></div>
+          ${shown.map(r => { const l = segsOf(r.id)[0]; return `
+          <div class="row">
+            <div style="min-width:0"><a class="nm" href="#caso-${r.id}">${esc(r.Title)}</a><div class="ls">${esc(l ? `${l.Texto} · ${l.Autor || ''}` : 'Sin seguimientos')}</div></div>
+            <span class="mono">${esc(r.Ref)}</span>
+            <span style="font-size:13px">${esc(r.Aseguradora)}</span>
+            <span>${pill(r.Esperando)}</span>
+            <div><div style="font-size:13px;font-weight:600;color:${dColor(r.ProximoSeguimiento)}">${fd(r.ProximoSeguimiento)}</div><div style="font-size:12px;color:${dColor(r.ProximoSeguimiento)}">${rel(r.ProximoSeguimiento)}</div></div>
+            <div style="display:flex;gap:6px;align-items:center">${isOpen(r) ? `
+              <button class="btn sm" data-a="move" data-id="${r.id}" data-n="1">+1 día</button>
+              <button class="btn sm" data-a="move" data-id="${r.id}" data-n="7">+1 sem</button>
+              <input type="date" aria-label="Elegir fecha" data-a2="setDate" data-id="${r.id}" style="width:34px;height:32px;border:1px solid #D5DBE4;border-radius:8px;padding:0 4px">` : '<span class="sub" style="font-size:12px">Cerrado</span>'}
+            </div>
+          </div>`; }).join('') || '<div class="pad sub">No hay reclamos en este filtro.</div>'}
+          <div style="padding:12px 18px;font-size:13px" class="sub">Mostrando ${shown.length} de ${list.length}${list.length > shown.length ? ` · <a href="#" data-a="showAll">ver todos</a>` : ''}</div>
+        </div></div>
+      </div>
+      <div class="cols">
+        <div class="tips"><b>Resumen y tips</b>${tipsHtml(tips())}</div>
+        ${waitBar(n.open)}
+        <div class="card pad" style="display:flex;flex-direction:column;gap:10px"><b>Abiertos por aseguradora</b>
+          ${aRows.map(([k, v]) => `<div class="bars"><span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(k)}</span><div class="track"><i style="width:${v / aMax * 100}%"></i></div><b style="text-align:right">${v}</b></div>`).join('') || '<span class="sub">Sin datos</span>'}
+        </div>
+        <div class="card pad" style="display:flex;flex-direction:column;gap:10px"><b>Por tipo de reclamo</b>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${Object.entries(byT).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div class="kpi" style="padding:12px"><b style="font-size:22px">${v}</b><span>${k}</span></div>`).join('')}</div>
+          <span class="sub" style="font-size:12px">Según el prefijo de la referencia (AU, IN, RC…)</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  const qi = $('q'); qi.oninput = () => { VIEW.q = qi.value; const pos = qi.selectionStart; viewSeg(); const nq = $('q'); nq.focus(); nq.setSelectionRange(pos, pos); };
+}
+
+// ====== VISTA: DASH DEL CLIENTE ======
+let NEWW = 'cliente';
+function resumenCaso(r, segs) {
+  const first = firstDate(r), dias = first ? diff(TODAY, first) : 0, l = segs[0];
+  let txt = `Abierto hace ${dias} día${dias === 1 ? '' : 's'} con ${r.Aseguradora || 'la aseguradora'}${r.Poliza ? ` (póliza ${r.Poliza})` : ''}. `;
+  txt += segs.length ? `Lleva ${segs.length} seguimiento${segs.length > 1 ? 's' : ''}; el último fue el ${fd(l.Fecha)}${l.Autor ? ` por ${l.Autor}` : ''}: “${l.Texto}”.` : 'Todavía no tiene seguimientos.';
+  let next = '';
+  const st = streak(r);
+  if (!isOpen(r)) next = 'Reclamo cerrado.';
+  else if (!segs.length) next = 'Agrega el primer seguimiento.';
+  else if (r.ProximoSeguimiento && r.ProximoSeguimiento < TODAY) next = `El seguimiento está vencido ${rel(r.ProximoSeguimiento)}. Dale seguimiento hoy o muévelo.`;
+  else if (st === 'cliente') next = 'Van 3 seguimientos seguidos esperando al cliente. Prueba con llamada o WhatsApp.';
+  else if (st === 'aseguradora') next = 'Van 3 seguimientos seguidos esperando a la aseguradora. Considera escalarlo con el ejecutivo.';
+  else if (r.ProximoSeguimiento === TODAY) next = 'Le toca seguimiento hoy.';
+  return { txt, next, dias };
+}
+function viewCaso(id) {
+  const r = REC.find(x => x.id === id);
+  if (!r) { $('app').innerHTML = '<div class="center">No encontré ese reclamo. <a href="#seguimientos">Volver</a></div>'; return; }
+  const segs = segsOf(id), sum = resumenCaso(r, segs);
+  const cnt = k => segs.filter(s => s.Esperando === k).length;
+  const hist = VIEW.all ? segs : segs.slice(0, 10);
+  const lineCard = (k, subj, mail) => `
+    <div class="card pad line" style="border-top-color:${P[k].bar};display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;justify-content:space-between;gap:8px"><span style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${P[k].c}">Línea de correo · ${P[k].t}</span><span class="sub" style="font-size:12px">${esc(mail || 'sin correo guardado')}</span></div>
+      <span style="font-size:15px;font-weight:600;line-height:1.4">${esc(subj || 'Sin asunto todavía. Agrégalo con Editar datos.')}</span>
+      ${subj ? `<div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn pri" style="background:${P[k].bar};border-color:${P[k].bar}" data-a="openThread" data-k="${k}">Abrir hilo en Outlook</button>
+        <a class="btn" href="mailto:${encodeURIComponent(mail || '')}?subject=${encodeURIComponent('RE: ' + core(subj))}">Nuevo correo</a>
+        <button class="btn" data-a="copy" data-t="${esc(subj)}">Copiar asunto</button></div>` : ''}
+    </div>`;
+  $('app').innerHTML = `
+  <div style="display:flex;flex-direction:column;gap:20px">
+    <a href="#seguimientos" style="font-weight:600;text-decoration:none;font-size:14px">← Seguimientos</a>
+    <div class="card" style="padding:22px;display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between">
+      <div style="display:flex;gap:16px;align-items:center;flex:1 1 420px;min-width:0">
+        <div style="width:60px;height:60px;border-radius:16px;background:#EAF3F3;color:var(--teal);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;flex-shrink:0">${initials(r.Title)}</div>
+        <div style="display:flex;flex-direction:column;gap:7px;min-width:0">
+          <h1 style="font-size:26px">${esc(r.Title)}</h1>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            ${r.Ref ? `<span class="mono pill" style="background:#F1F4F8;color:#3C4757">${esc(r.Ref)}</span>` : ''}
+            <span class="pill" style="background:#F1F4F8;color:#3C4757">${tipo(r)}</span>
+            <span class="pill" style="background:${isOpen(r) ? '#E7F5EC' : '#EEF1F5'};color:${isOpen(r) ? '#1E6B3A' : '#3C4757'}">${isOpen(r) ? 'Abierto' : 'Cerrado'}</span>
+            ${isOpen(r) ? pill(r.Esperando).replace('">', '">Esperando ') : ''}
+          </div>
+          <span class="sub" style="font-size:14px">${esc([r.Aseguradora, r.Poliza && 'Póliza ' + r.Poliza].filter(Boolean).join(' · '))}</span>
+        </div>
+      </div>
+      ${isOpen(r) ? `<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+        <div style="padding:9px 14px;border-radius:12px;background:${r.ProximoSeguimiento < TODAY ? '#FDECEA' : '#F5F7FA'}"><div style="font-size:12px;font-weight:600;color:${dColor(r.ProximoSeguimiento)}">Próximo seguimiento</div><b style="color:${dColor(r.ProximoSeguimiento)}">${fd(r.ProximoSeguimiento)} · ${rel(r.ProximoSeguimiento)}</b></div>
+        <button class="btn" data-a="move" data-id="${r.id}" data-n="1">+1 día</button>
+        <button class="btn" data-a="move" data-id="${r.id}" data-n="7">+1 semana</button>
+        <input type="date" aria-label="Elegir fecha" data-a2="setDate" data-id="${r.id}" style="min-height:42px;border:1px solid #D5DBE4;border-radius:10px;padding:0 10px">
+      </div>` : ''}
+    </div>
+    <div class="grid2">${lineCard('cliente', r.AsuntoCliente, r.CorreoCliente)}${lineCard('aseguradora', r.AsuntoAseguradora, r.CorreoAseguradora)}</div>
+    <div class="flex">
+      <div class="colm">
+        ${isOpen(r) ? `<div class="card pad" style="display:flex;flex-direction:column;gap:12px">
+          <b>Nuevo seguimiento</b>
+          <label class="f">Qué pasó<textarea id="nTxt" rows="3" placeholder="Ej: se consulta a la aseguradora por el avance"></textarea></label>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+            <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600;color:#3C4757">Ahora esperamos a</span>
+              <div style="display:flex;flex-wrap:wrap;gap:6px" id="nW">${Object.keys(P).map(k => `<button class="chip" data-a="pickW" data-k="${k}" style="min-height:38px">${P[k].t}</button>`).join('')}</div></div>
+            <label class="f">Próximo seguimiento<input type="date" id="nDate" value="${biz(addD(TODAY, 2))}"></label>
+            <button class="btn pri" style="margin-left:auto" data-a="saveSeg" data-id="${r.id}">Guardar seguimiento</button>
+          </div>
+        </div>` : ''}
+        <div class="card pad" style="display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:10px"><b>Historial</b><span class="sub" style="font-size:13px">${segs.length} seguimientos</span></div>
+          ${hist.map(s => { const p = P[s.Esperando] || P.garrett; return `
+            <div class="tl"><span style="font-size:13px;font-weight:600;color:var(--mut)">${fd(s.Fecha)}</span>
+              <div style="display:flex;flex-direction:column;align-items:center"><span class="dot" style="background:${p.bar}"></span><span class="st"></span></div>
+              <div style="padding-bottom:14px"><div style="font-size:14px;line-height:1.45">${esc(s.Texto)}</div><div style="font-size:12px;margin-top:2px"><b style="color:${p.c}">Esperando ${p.t.toLowerCase()}</b> <span class="sub">· ${esc(s.Autor || '—')}</span></div></div>
+            </div>`; }).join('') || '<span class="sub">Sin seguimientos todavía.</span>'}
+          ${segs.length > hist.length ? `<button class="btn" style="align-self:flex-start" data-a="showAll">Ver los ${segs.length}</button>` : ''}
+        </div>
+      </div>
+      <div class="cols">
+        <div style="background:#12355B;color:#fff;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px">
+          <b>Resumen del caso</b>
+          <p style="margin:0;font-size:14px;line-height:1.55;color:#E1E8F2">${esc(sum.txt)}</p>
+          ${sum.next ? `<div style="background:rgba(255,255,255,.1);border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.5"><b>Siguiente paso:</b> ${esc(sum.next)}</div>` : ''}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+          <div class="card" style="padding:14px"><b style="font-size:22px">${sum.dias}</b><div class="sub" style="font-size:12px">días abierto</div></div>
+          <div class="card" style="padding:14px"><b style="font-size:22px;color:${P.cliente.c}">${cnt('cliente')}</b><div class="sub" style="font-size:12px">con cliente</div></div>
+          <div class="card" style="padding:14px"><b style="font-size:22px;color:${P.aseguradora.c}">${cnt('aseguradora')}</b><div class="sub" style="font-size:12px">con aseguradora</div></div>
+        </div>
+        <div class="card pad" style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between"><b>Evidencias</b><span class="sub" style="font-size:12px">Fotos, videos y documentos</span></div>
+          <div class="ev" id="evList"><span class="sub" style="font-size:13px">Cargando…</span></div>
+          <button class="drop" id="drop" data-a="pickFiles" data-id="${r.id}">⬆ Arrastra o sube archivos</button>
+          <div id="upProg" class="sub" style="font-size:12px"></div>
+        </div>
+        <div class="card pad" style="display:flex;flex-direction:column;gap:8px">
+          <label class="f">Notas fijas<textarea id="notas" rows="3" data-id="${r.id}">${esc(r.Notas || '')}</textarea></label>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button class="btn" data-a="editCase" data-id="${r.id}">Editar datos</button>
+          <button class="btn" data-a="toggleClose" data-id="${r.id}" style="color:#1E6B3A">${isOpen(r) ? 'Cerrar reclamo' : 'Reabrir reclamo'}</button>
+          <button class="btn danger" data-a="delCase" data-id="${r.id}">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  NEWW = r.Esperando || 'cliente'; paintW();
+  $('notas').onchange = async e => { await patchRec(r, { Notas: e.target.value }); toast('Notas guardadas'); };
+  const dz = $('drop');
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('over'); };
+  dz.ondragleave = () => dz.classList.remove('over');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('over'); upload(r.id, [...e.dataTransfer.files]); };
+  loadEvidence(r.id);
+}
+function paintW() { document.querySelectorAll('#nW .chip').forEach(b => b.classList.toggle('on', b.dataset.k === NEWW)); }
+
+// ====== OPERACIONES ======
+async function patchRec(r, f) { await g(`${itemsUrl('rec')}/${r.id}/fields`, { method: 'PATCH', body: JSON.stringify(f) }); Object.assign(r, f); }
+async function addSeg(r, texto, esperando) {
+  const f = { Title: String(r.Ref || r.Title || '').slice(0, 255), ReclamoId: r.id, Texto: texto, Fecha: TODAY, Esperando: esperando, Autor: ME };
+  const it = await g(itemsUrl('seg'), { method: 'POST', body: JSON.stringify({ fields: f }) });
+  SEG.push({ ...f, id: +it.id });
+}
+async function moveTo(r, date) {
+  await patchRec(r, { ProximoSeguimiento: date });
+  await addSeg(r, `Se mueve el seguimiento al ${fd(date)}`, r.Esperando);
+  toast(`Movido al ${fd(date)}`); route();
+}
+function caseForm(r = {}) {
+  const v = k => esc(r[k] || '');
+  modal(`<h2 style="margin:0">${r.id ? 'Editar datos' : 'Nuevo cliente'}</h2>
+  <div class="grid2" style="gap:12px">
+    <label class="f" style="grid-column:span 2">Cliente *<input id="fTitle" value="${v('Title')}"></label>
+    <label class="f">Referencia<input id="fRef" value="${v('Ref')}" placeholder="AU26101"></label>
+    <label class="f">Aseguradora<input id="fAseg" value="${v('Aseguradora')}" list="asegs"></label>
+    <label class="f" style="grid-column:span 2">Póliza<input id="fPol" value="${v('Poliza')}"></label>
+    <label class="f">Asunto del correo con el cliente<input id="fAC" value="${v('AsuntoCliente')}"></label>
+    <label class="f">Correo del cliente<input id="fCC" value="${v('CorreoCliente')}" type="email"></label>
+    <label class="f">Asunto del correo con la aseguradora<input id="fAA" value="${v('AsuntoAseguradora')}"></label>
+    <label class="f">Correo de la aseguradora<input id="fCA" value="${v('CorreoAseguradora')}" type="email"></label>
+    ${r.id ? '' : `<label class="f">Esperando a<select id="fW">${Object.keys(P).map(k => `<option value="${k}">${P[k].t}</option>`).join('')}</select></label>
+    <label class="f">Próximo seguimiento<input type="date" id="fDate" value="${biz(addD(TODAY, 1))}"></label>
+    <label class="f" style="grid-column:span 2">Notas<textarea id="fNotas" rows="2"></textarea></label>`}
+  </div>
+  <datalist id="asegs">${[...new Set(REC.map(x => x.Aseguradora).filter(Boolean))].map(a => `<option value="${esc(a)}">`).join('')}</datalist>
+  <div style="display:flex;justify-content:flex-end;gap:10px"><button class="btn" data-a="close">Cancelar</button><button class="btn pri" data-a="saveCase" data-id="${r.id || ''}">Guardar</button></div>`);
+  $('fTitle').focus();
+}
+
+const ACT = {
+  logout: () => pca.logoutRedirect(),
+  close: closeModal,
+  goFilter: d => { VIEW.f = d.f; VIEW.all = false; },
+  filter: d => { VIEW.f = d.f; VIEW.all = false; viewSeg(); },
+  showAll: () => { VIEW.all = true; route(); },
+  newCase: () => caseForm(),
+  editCase: d => caseForm(REC.find(x => x.id === +d.id)),
+  async saveCase(d) {
+    const title = $('fTitle').value.trim(); if (!title) return toast('Pon el nombre del cliente');
+    const f = { Title: title.slice(0, 255), Ref: $('fRef').value.trim(), Aseguradora: $('fAseg').value.trim(), Poliza: $('fPol').value.trim(),
+      AsuntoCliente: $('fAC').value.trim().slice(0, 255), CorreoCliente: $('fCC').value.trim(), AsuntoAseguradora: $('fAA').value.trim().slice(0, 255), CorreoAseguradora: $('fCA').value.trim() };
+    if (d.id) { await patchRec(REC.find(x => x.id === +d.id), f); closeModal(); toast('Datos guardados'); return route(); }
+    Object.assign(f, { Estado: 'Abierto', Esperando: $('fW').value, ProximoSeguimiento: $('fDate').value || TODAY, Notas: $('fNotas').value });
+    const it = await g(itemsUrl('rec'), { method: 'POST', body: JSON.stringify({ fields: f }) });
+    const r = { ...f, id: +it.id }; REC.push(r);
+    await addSeg(r, 'Se abre el reclamo en el sistema', f.Esperando);
+    closeModal(); location.hash = 'caso-' + r.id;
+  },
+  async move(d) { const r = REC.find(x => x.id === +d.id); const base = (r.ProximoSeguimiento && r.ProximoSeguimiento > TODAY) ? r.ProximoSeguimiento : TODAY; await moveTo(r, biz(addD(base, +d.n))); },
+  pickW: d => { NEWW = d.k; paintW(); },
+  async saveSeg(d) {
+    const r = REC.find(x => x.id === +d.id), txt = $('nTxt').value.trim(), date = $('nDate').value;
+    if (!txt) return toast('Escribe qué pasó');
+    await addSeg(r, txt, NEWW);
+    await patchRec(r, { Esperando: NEWW, ProximoSeguimiento: date || r.ProximoSeguimiento });
+    toast('Seguimiento guardado'); viewCaso(r.id);
+  },
+  async toggleClose(d) {
+    const r = REC.find(x => x.id === +d.id), open = isOpen(r);
+    if (!confirm(open ? '¿Cerrar este reclamo?' : '¿Reabrir este reclamo?')) return;
+    await patchRec(r, { Estado: open ? 'Cerrado' : 'Abierto' });
+    await addSeg(r, open ? 'Se cierra el reclamo' : 'Se reabre el reclamo', r.Esperando);
+    viewCaso(r.id);
+  },
+  async delCase(d) {
+    const r = REC.find(x => x.id === +d.id), segs = segsOf(r.id);
+    if (!confirm(`¿Eliminar a ${r.Title} con sus ${segs.length} seguimientos y evidencias? Queda en la papelera de SharePoint.`)) return;
+    toast('Eliminando…', 10000);
+    await batch(segs.map(s => ({ method: 'DELETE', url: `${itemsUrl('seg')}/${s.id}` })));
+    try { await g(`/drives/${DRIVE}/root:/R-${r.id}`, { method: 'DELETE' }); } catch (e) {}
+    await g(`${itemsUrl('rec')}/${r.id}`, { method: 'DELETE' });
+    SEG = SEG.filter(s => Number(s.ReclamoId) !== r.id); REC = REC.filter(x => x.id !== r.id);
+    toast('Eliminado'); location.hash = 'seguimientos';
+  },
+  copy: d => { navigator.clipboard.writeText(d.t); toast('Asunto copiado'); },
+  async openThread(d, el) {
+    const r = REC.find(x => x.id === +location.hash.slice(6)), subj = core(d.k === 'cliente' ? r.AsuntoCliente : r.AsuntoAseguradora);
+    let t;
+    try { t = (await pca.acquireTokenSilent({ scopes: MAIL, account: pca.getActiveAccount() })).accessToken; }
+    catch (e) { try { t = (await pca.acquireTokenPopup({ scopes: MAIL })).accessToken; } catch (e2) { return toast('No hay permiso para leer el correo (Mail.Read).'); } }
+    el.disabled = true; el.textContent = 'Buscando…';
+    try {
+      const q = encodeURIComponent(`"${subj.replace(/"/g, '')}"`);
+      const res = await fetch(`https://graph.microsoft.com/v1.0/me/messages?$search=${q}&$top=25&$select=subject,webLink,receivedDateTime`, { headers: { Authorization: 'Bearer ' + t } });
+      const j = await res.json();
+      const all = (j.value || []).sort((a, b) => b.receivedDateTime.localeCompare(a.receivedDateTime));
+      const hit = all.find(m => core(m.subject).toLowerCase() === subj.toLowerCase()) || all.find(m => core(m.subject).toLowerCase().includes(subj.toLowerCase()));
+      if (hit) window.open(hit.webLink, '_blank');
+      else toast('No encontré ese hilo en tu buzón. Usa "Nuevo correo".', 5000);
+    } catch (e) { toast('Error buscando el hilo'); }
+    el.disabled = false; el.textContent = 'Abrir hilo en Outlook';
+  },
+  pickFiles: d => { const fi = $('fileIn'); fi.onchange = () => { upload(+d.id, [...fi.files]); fi.value = ''; }; fi.click(); },
+  importJson: () => { const ji = $('jsonIn'); ji.onchange = () => { importOld(ji.files[0]); ji.value = ''; }; ji.click(); }
+};
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-a]'); if (!b) return;
+  const a = b.dataset.a;
+  if (b.tagName === 'A' && b.getAttribute('href') === '#') e.preventDefault();
+  try { await ACT[a]?.(b.dataset, b); } catch (err) { console.error(err); toast('Error: ' + err.message, 6000); }
+});
+document.addEventListener('change', async e => {
+  const el = e.target; if (el.dataset.a2 !== 'setDate' || !el.value) return;
+  try { await moveTo(REC.find(x => x.id === +el.dataset.id), el.value); } catch (err) { toast('Error: ' + err.message); }
+});
+$('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+
+// ====== EVIDENCIAS ======
+async function loadEvidence(id) {
+  const box = $('evList'); if (!box) return;
+  let items = [];
+  try { items = (await g(`/drives/${DRIVE}/root:/R-${id}:/children?$expand=thumbnails&$top=200`)).value || []; }
+  catch (e) { if (e.status !== 404) { box.innerHTML = `<span class="sub">${esc(e.message)}</span>`; return; } }
+  if (!$('evList')) return;
+  box.innerHTML = items.length ? items.map(f => {
+    const th = f.thumbnails?.[0]?.medium?.url, mt = f.file?.mimeType || '';
+    const kind = mt.startsWith('video') ? 'VIDEO' : mt.startsWith('image') ? 'FOTO' : (f.name.split('.').pop() || 'ARCHIVO').toUpperCase();
+    return `<a class="evi" href="${esc(f.webUrl)}" target="_blank" rel="noopener"><div class="th" style="${th ? `background-image:url('${esc(th)}')` : ''}">${th && kind !== 'VIDEO' ? '' : kind === 'VIDEO' ? '<span style="background:rgba(15,27,45,.7);color:#fff;padding:4px 10px;border-radius:999px">▶ VIDEO</span>' : kind}</div><div class="nm">${esc(f.name)}</div></a>`;
+  }).join('') : '<span class="sub" style="font-size:13px">Todavía no hay evidencias.</span>';
+}
+async function upload(id, files) {
+  if (!files.length) return;
+  const prog = $('upProg');
+  for (const [i, file] of files.entries()) {
+    const label = `Subiendo ${i + 1} de ${files.length}: ${file.name}`;
+    prog.textContent = label;
+    const path = `/drives/${DRIVE}/root:/R-${id}/${encodeURIComponent(file.name)}`;
+    try {
+      if (file.size < 4 * 1024 * 1024) {
+        const t = await token();
+        const r = await fetch(`https://graph.microsoft.com/v1.0${path}:/content?@microsoft.graph.conflictBehavior=rename`, { method: 'PUT', headers: { Authorization: 'Bearer ' + t, 'Content-Type': file.type || 'application/octet-stream' }, body: file });
+        if (!r.ok) throw new Error('Error ' + r.status);
+      } else {
+        const ses = await g(`${path}:/createUploadSession`, { method: 'POST', body: JSON.stringify({ item: { '@microsoft.graph.conflictBehavior': 'rename' } }) });
+        const CH = 320 * 1024 * 16;
+        for (let s = 0; s < file.size; s += CH) {
+          const e = Math.min(s + CH, file.size);
+          const r = await fetch(ses.uploadUrl, { method: 'PUT', headers: { 'Content-Range': `bytes ${s}-${e - 1}/${file.size}` }, body: file.slice(s, e) });
+          if (!r.ok && r.status !== 202) throw new Error('Error ' + r.status);
+          prog.textContent = `${label} · ${Math.round(e / file.size * 100)}%`;
+        }
+      }
+    } catch (e) { toast(`No se pudo subir ${file.name}: ${e.message}`, 6000); }
+  }
+  const r = REC.find(x => x.id === id);
+  await addSeg(r, `Se ${files.length > 1 ? `suben ${files.length} evidencias` : `sube la evidencia ${files[0].name}`}`, r.Esperando);
+  prog.textContent = ''; toast('Evidencias subidas'); viewCaso(id);
+}
+
+// ====== IMPORTAR SISTEMA VIEJO ======
+async function importOld(file) {
+  if (!file) return;
+  let data; try { data = JSON.parse(await file.text()); } catch (e) { return toast('Ese archivo no es un JSON válido'); }
+  const cases = data.cases || [];
+  const pmap = {};
+  (data.parties || []).forEach(p => { const l = String(p.label || '').toLowerCase(); pmap[p.id] = p.id === 'client' ? 'cliente' : p.id === 'insurer' ? 'aseguradora' : l.includes('corred') ? 'corredora' : 'garrett'; });
+  const W = k => pmap[k] || (k === 'client' ? 'cliente' : k === 'insurer' ? 'aseguradora' : 'garrett');
+  const done = {}; REC.forEach(r => { if (r.IdAnterior) done[r.IdAnterior] = r.id; });
+  const segDone = new Set(SEG.map(s => s.IdAnterior).filter(Boolean));
+  const todo = cases.filter(c => !done[c.id]);
+  const nlogs = cases.reduce((s, c) => s + (c.log || []).filter(l => !segDone.has(l.id)).length, 0);
+  if (!todo.length && !nlogs) return toast('Todo ese respaldo ya estaba importado.');
+  if (!confirm(`Se van a importar ${todo.length} reclamos y ${nlogs} seguimientos. ¿Seguimos?`)) return;
+  modal('<h2 style="margin:0">Importando…</h2><div id="impMsg" class="sub">Preparando</div><div class="track"><i id="impBar" style="width:0%"></i></div><span class="sub" style="font-size:13px">No cierres esta pestaña.</span>');
+  const setP = (m, p) => { $('impMsg').textContent = m; $('impBar').style.width = p + '%'; };
+  const splitIns = s => { const m = String(s || '').trim().match(/^([A-Za-zÁÉÍÓÚÑáéíóúñ]+)\s*[\/\-]?\s*(.*)$/); if (!m) return ['', String(s || '')]; let a = m[1]; a = a.length <= 4 ? a.toUpperCase() : a.charAt(0).toUpperCase() + a.slice(1).toLowerCase(); return [a, m[2].trim()]; };
+  const recFields = todo.map(c => { const [a, p] = splitIns(c.insurer); return {
+    Title: String(c.client || 'Sin nombre').slice(0, 255), Ref: c.ref || '', Aseguradora: a, Poliza: p,
+    AsuntoCliente: String(c.csubj || '').slice(0, 255), AsuntoAseguradora: String(c.isubj || '').slice(0, 255), Notas: c.notes || '',
+    Estado: c.status === 'closed' ? 'Cerrado' : 'Abierto', Esperando: W(c.waiting), ProximoSeguimiento: String(c.follow || '').slice(0, 10), IdAnterior: c.id }; });
+  setP('Creando reclamos…', 2);
+  const res = await batch(recFields.map(f => ({ method: 'POST', url: itemsUrl('rec'), body: { fields: f } })));
+  const idMap = { ...done };
+  res.forEach((x, i) => { if (x && x.status === 201) { idMap[todo[i].id] = +x.body.id; REC.push({ ...recFields[i], id: +x.body.id }); } });
+  const newRec = Object.keys(idMap).length - Object.keys(done).length;
+  setP(`Reclamos listos (${newRec}). Creando seguimientos…`, 10);
+  const segFields = [];
+  cases.forEach(c => { const rid = idMap[c.id]; if (!rid) return; (c.log || []).filter(l => !segDone.has(l.id)).forEach(l => segFields.push({ Title: String(c.ref || c.client || '').slice(0, 255), ReclamoId: rid, Texto: l.text || '', Fecha: String(l.date || '').slice(0, 10), Esperando: W(l.waiting), Autor: 'Sistema anterior', IdAnterior: l.id })); });
+  let ok = 0;
+  for (let i = 0; i < segFields.length; i += 100) {
+    const part = segFields.slice(i, i + 100);
+    const r2 = await batch(part.map(f => ({ method: 'POST', url: itemsUrl('seg'), body: { fields: f } })));
+    r2.forEach((x, k) => { if (x && x.status === 201) { ok++; SEG.push({ ...part[k], id: +x.body.id }); } });
+    setP(`Seguimientos: ${ok} de ${segFields.length}`, 10 + Math.round((i + part.length) / segFields.length * 90));
+  }
+  const fail = (todo.length - newRec) + (segFields.length - ok);
+  $('mbox').innerHTML = `<h2 style="margin:0">Importación lista</h2><p>${newRec} reclamos y ${ok} seguimientos importados.${fail ? ` ${fail} fallaron; si vuelves a importar el mismo archivo, solo intenta los que faltan.` : ''}</p><div style="text-align:right"><button class="btn pri" data-a="close">Listo</button></div>`;
+  route();
+}
+
+init();
+</script>
+</body>
+</html>
