@@ -6,7 +6,7 @@
 <title>Reclamos · Garrett Unicen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
-<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.30.0/lib/msal-browser.min.js"></script>
 <style>
 :root{--ink:#0F1B2D;--mut:#5A6577;--line:#E3E7ED;--bg:#F5F7FA;--teal:#2F6F7A;--red:#B42318;--amber:#92400E}
 *{box-sizing:border-box}
@@ -784,7 +784,11 @@ async function importOld(file) {
   route();
 }
 
-init();
+init().catch(e => {
+  console.error(e);
+  const msg = typeof msal === 'undefined' ? 'No cargó la librería de inicio de sesión de Microsoft. Revisa tu conexión o si algo la está bloqueando.' : (e.errorMessage || e.message || String(e));
+  $('app').innerHTML = `<div class="center"><b style="color:var(--ink);font-size:18px">No se pudo iniciar sesión</b><div style="max-width:640px">${esc(msg)}</div></div>`;
+});
 </script>
 </body>
 </html>
