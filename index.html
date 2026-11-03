@@ -345,11 +345,21 @@ async function init() {
   pca.setActiveAccount(acc);
   ME = acc.name || acc.username;
   $('uName').textContent = ME; $('uAv').textContent = initials(ME); $('hdr').hidden = false;
+  CKEY = 'rc_cache_v1:' + (acc.homeAccountId || acc.username);
+  // 1) Abrir al instante con lo último guardado en este equipo
+  const c = readCache();
+  if (c) {
+    S = c.S; LID = c.LID; DRIVE = c.DRIVE; REC = c.REC; SEG = c.SEG; LASTSIG = sig();
+    route(); animateIn();
+    refresh(true);
+    return;
+  }
+  // 2) Primera vez en este equipo: carga completa
   try {
     $('app').innerHTML = '<div class="center">Conectando con SharePoint…</div>';
-    S = (await g(`/sites/${CONFIG.host}:${CONFIG.sitePath}`)).id;
-    await ensureLists();
+    await connect();
     await loadAll();
+    saveCache(); LASTSIG = sig();
     route(); animateIn();
   } catch (e) {
     console.error(e);
@@ -400,11 +410,60 @@ async function pinQuickLaunch(titles) {
   }
 }
 
-async function loadAll() {
-  const [r, s] = await Promise.all([gAll(itemsUrl('rec') + '?$expand=fields&$top=999'), gAll(itemsUrl('seg') + '?$expand=fields&$top=999')]);
-  REC = r.map(i => ({ ...i.fields, id: +i.id }));
-  SEG = s.map(i => ({ ...i.fields, id: +i.id }));
+const REC_F = 'Title,Ref,Aseguradora,Poliza,AsuntoCliente,CorreoCliente,AsuntoAseguradora,CorreoAseguradora,Notas,Estado,Esperando,ProximoSeguimiento,IdAnterior,Created';
+const SEG_F = 'ReclamoId,Texto,Fecha,Esperando,Autor,IdAnterior';
+async function fetchAll() {
+  const [r, s] = await Promise.all([
+    gAll(itemsUrl('rec') + `?$expand=fields($select=${REC_F})&$select=id&$top=999`),
+    gAll(itemsUrl('seg') + `?$expand=fields($select=${SEG_F})&$select=id&$top=999`)
+  ]);
+  const clean = f => { const o = { ...f }; delete o['@odata.etag']; return o; };
+  return { REC: r.map(i => ({ ...clean(i.fields), id: +i.id })), SEG: s.map(i => ({ ...clean(i.fields), id: +i.id })) };
 }
+async function loadAll() { const d = await fetchAll(); REC = d.REC; SEG = d.SEG; }
+async function connect() {
+  S = (await g(`/sites/${CONFIG.host}:${CONFIG.sitePath}`)).id;
+  await ensureLists();
+}
+
+// ---- caché local: abre al instante y sincroniza SharePoint por detrás ----
+let CKEY = '', LASTSIG = '', WSEQ = 0, LASTREF = 0, REFRESHING = false, DIRTY = false, saveT;
+function readCache() { try { const c = JSON.parse(localStorage.getItem(CKEY) || 'null'); return c && c.v === 1 && c.S && c.REC ? c : null; } catch (e) { return null; } }
+function saveCache() {
+  clearTimeout(saveT);
+  saveT = setTimeout(() => {
+    try { localStorage.setItem(CKEY, JSON.stringify({ v: 1, t: Date.now(), S, LID, DRIVE, REC: REC.filter(r => r.id < 1e12), SEG: SEG.filter(s => s.id < 1e12).map(s => { const o = { ...s }; delete o._new; return o; }) })); }
+    catch (e) { console.warn('Caché llena o bloqueada', e); }
+  }, 400);
+}
+function clearCache() { try { Object.keys(localStorage).filter(k => k.startsWith('rc_cache_v1:')).forEach(k => localStorage.removeItem(k)); } catch (e) {} }
+const sig = () => REC.length + ':' + SEG.length + ':' + JSON.stringify(REC).length + ':' + JSON.stringify(SEG.map(s => s.id + (s.Texto || '') + (s.Fecha || ''))).length;
+function busy() {
+  const a = document.activeElement;
+  return (a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) && a.value) || $('modal').style.display === 'flex' || PK || $('calov');
+}
+async function refresh(first) {
+  if (REFRESHING) return; REFRESHING = true;
+  const s = $('sync'); if (first && s && !PENDING) { s.textContent = 'Actualizando…'; s.className = 'sync on'; }
+  try {
+    for (let tries = 0; tries < 5; tries++) {
+      const seq = WSEQ;
+      let d;
+      try { d = await fetchAll(); }
+      catch (e) { if (e.status === 404 || e.status === 403) { clearCache(); await connect(); d = await fetchAll(); } else throw e; }
+      if (seq !== WSEQ || PENDING) { await sleep(1500); continue; } // hubo cambios tuyos mientras cargaba: reintenta
+      REC = d.REC; SEG = d.SEG; LASTREF = Date.now(); saveCache();
+      const ns = sig();
+      if (ns !== LASTSIG) { LASTSIG = ns; if (busy()) DIRTY = true; else rerender(); }
+      break;
+    }
+  } catch (e) { console.error(e); toast('No se pudo actualizar desde SharePoint: ' + e.message, 6000); }
+  finally {
+    REFRESHING = false;
+    if (s && !PENDING) { s.textContent = 'Actualizado ✓'; s.className = 'sync ok'; clearTimeout(s._t); s._t = setTimeout(() => s.className = 'sync', 1500); }
+  }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S && Date.now() - LASTREF > 60000) refresh(); });
 
 // ====== RUTAS ======
 function setNav(open) { $('nav').classList.toggle('open', open); document.querySelector('.navx').setAttribute('aria-expanded', open); document.querySelectorAll('#navm a').forEach(a => a.tabIndex = open ? 0 : -1); }
@@ -420,6 +479,7 @@ window.addEventListener('hashchange', () => {
 document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.dataset?.a === 'openMod') { e.preventDefault(); ACT.openMod(e.target.dataset, e.target); } });
 function route() {
   if (!S) return;
+  DIRTY = false;
   const h = location.hash.slice(1) || 'inicio';
   $('nInicio').classList.toggle('on', h === 'inicio');
   $('nSeg').classList.toggle('on', h !== 'inicio');
@@ -907,20 +967,21 @@ function viewCaso(id) {
 function paintW() { document.querySelectorAll('#nW .chip').forEach(b => b.classList.toggle('on', b.dataset.k === NEWW)); }
 
 // ====== OPERACIONES ======
-async function patchRec(r, f) { await g(`${itemsUrl('rec')}/${r.id}/fields`, { method: 'PATCH', body: JSON.stringify(f) }); Object.assign(r, f); }
+async function patchRec(r, f) { WSEQ++; await g(`${itemsUrl('rec')}/${r.id}/fields`, { method: 'PATCH', body: JSON.stringify(f) }); Object.assign(r, f); saveCache(); }
 async function addSeg(r, texto, esperando) {
   const f = { Title: String(r.Ref || r.Title || '').slice(0, 255), ReclamoId: r.id, Texto: texto, Fecha: TODAY, Esperando: esperando, Autor: ME };
+  WSEQ++;
   const it = await g(itemsUrl('seg'), { method: 'POST', body: JSON.stringify({ fields: f }) });
-  SEG.push({ ...f, id: +it.id });
+  SEG.push({ ...f, id: +it.id }); saveCache();
 }
 // ---- guardado en segundo plano (la pantalla responde al instante) ----
 let PENDING = 0, TMPID = 1e12;
 function syncUI() { const s = $('sync'); if (!s) return; clearTimeout(s._t); if (PENDING) { s.textContent = 'Guardando…'; s.className = 'sync on'; } else { s.textContent = 'Guardado ✓'; s.className = 'sync ok'; s._t = setTimeout(() => s.className = 'sync', 1800); } }
 async function bg(job, revert) {
-  PENDING++; syncUI();
+  PENDING++; WSEQ++; syncUI();
   try { await job(); }
   catch (e) { console.error(e); revert && revert(); toast('No se pudo guardar: ' + e.message, 7000); rerender(); }
-  finally { PENDING--; syncUI(); }
+  finally { PENDING--; syncUI(); saveCache(); }
 }
 window.addEventListener('beforeunload', e => { if (PENDING) { e.preventDefault(); e.returnValue = ''; } });
 function patchLocal(r, f) { const old = {}; for (const k in f) old[k] = r[k]; Object.assign(r, f); return { req: () => g(`${itemsUrl('rec')}/${r.id}/fields`, { method: 'PATCH', body: JSON.stringify(f) }), revert: () => Object.assign(r, old) }; }
@@ -1081,7 +1142,7 @@ function calDraw(onlySide) {
 }
 
 const ACT = {
-  logout: () => pca.logoutRedirect(),
+  logout: () => { clearCache(); pca.logoutRedirect(); },
   close: closeModal,
   goFilter: d => { VIEW.f = d.f; VIEW.tab = 'bandeja'; VIEW.all = false; VIEW.keep = true; if (location.hash === '#seguimientos') viewSeg(); else location.hash = 'seguimientos'; },
   goKpi: () => { VIEW.tab = 'kpi'; VIEW.all = false; VIEW.keep = true; if (location.hash === '#seguimientos') viewSeg(); else location.hash = 'seguimientos'; },
@@ -1115,7 +1176,7 @@ const ACT = {
     if (d.id) { await patchRec(REC.find(x => x.id === +d.id), f); closeModal(); toast('Datos guardados'); return route(); }
     Object.assign(f, { Estado: 'Abierto', Esperando: $('fW').value, ProximoSeguimiento: $('fDate').value || TODAY, Notas: $('fNotas').value });
     const it = await g(itemsUrl('rec'), { method: 'POST', body: JSON.stringify({ fields: f }) });
-    const r = { ...f, id: +it.id }; REC.push(r);
+    const r = { ...f, id: +it.id }; REC.push(r); WSEQ++; saveCache();
     await addSeg(r, 'Se abre el reclamo en el sistema', f.Esperando);
     closeModal(); location.hash = 'caso-' + r.id;
   },
@@ -1145,7 +1206,7 @@ const ACT = {
     await batch(segs.map(s => ({ method: 'DELETE', url: `${itemsUrl('seg')}/${s.id}` })));
     try { await g(`/drives/${DRIVE}/root:/R-${r.id}`, { method: 'DELETE' }); } catch (e) {}
     await g(`${itemsUrl('rec')}/${r.id}`, { method: 'DELETE' });
-    SEG = SEG.filter(s => Number(s.ReclamoId) !== r.id); REC = REC.filter(x => x.id !== r.id);
+    SEG = SEG.filter(s => Number(s.ReclamoId) !== r.id); REC = REC.filter(x => x.id !== r.id); WSEQ++; saveCache();
     toast('Eliminado'); location.hash = 'seguimientos';
   },
   copy: d => { navigator.clipboard.writeText(d.t); toast('Asunto copiado'); },
@@ -1263,6 +1324,7 @@ async function importOld(file) {
   }
   const fail = (todo.length - newRec) + (segFields.length - ok);
   $('mbox').innerHTML = `<h2 style="margin:0">Importación lista</h2><p>${newRec} reclamos y ${ok} seguimientos importados.${fail ? ` ${fail} fallaron; si vuelves a importar el mismo archivo, solo intenta los que faltan.` : ''}</p><div style="text-align:right"><button class="btn pri" data-a="close">Listo</button></div>`;
+  WSEQ++; saveCache();
   route();
 }
 
